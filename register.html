@@ -77,11 +77,15 @@
                         'Content-Type': 'application/json',
                         'x-api-key': 'mV3xihTh7m9ypwEAvrsxmWDwghb52jD5nQfotH44'
                     },
-                    mode: 'no-cors',
                     body: JSON.stringify(formData)
                 });
 
-                console.log('Response:', response);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Registration successful:', data);
                 
                 document.querySelector('.auth-form').style.display = 'none';
                 document.querySelector('.auth-title').style.display = 'none';
