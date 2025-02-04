@@ -239,6 +239,17 @@
 
         // Call fetchUserData when page loads
         document.addEventListener('DOMContentLoaded', fetchUserData);
+
+        // Add this function before the closing </script> tag
+        function handleLogout() {
+            // Clear all stored data
+            localStorage.removeItem('token');
+            localStorage.removeItem('apiKey');
+            localStorage.removeItem('userEmail');
+            
+            // Redirect to homepage
+            window.location.href = '/';
+        }
     </script>
 </head>
 <body>
@@ -254,7 +265,7 @@
                     <li><a href="#" class="active">API Keys</a></li>
                 </ul>
             </div>
-            <a href="#" class="logout-btn">Logout</a>
+            <a href="#" class="logout-btn" onclick="handleLogout()">Logout</a>
         </div>
 
         <!-- Main Content -->
