@@ -20,6 +20,15 @@
             background-color: #132134;
             color: white;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* This will push the logout to bottom */
+        }
+        
+        .sidebar-top {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         
         .sidebar-logo {
@@ -129,6 +138,23 @@
             color: #533f03;
             text-decoration: underline;
         }
+        
+        /* Add styles for logout button */
+        .logout-btn {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .logout-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
     </style>
     <script>
         // Check if user is logged in
@@ -204,28 +230,40 @@
 
         // Call fetchUserData when page loads
         document.addEventListener('DOMContentLoaded', fetchUserData);
+
+        function handleLogout() {
+            // Clear all stored data
+            localStorage.removeItem('token');
+            localStorage.removeItem('apiKey');
+            localStorage.removeItem('userEmail');
+            
+            // Redirect to login page
+            window.location.href = 'login.html';
+        }
     </script>
 </head>
 <body>
     <div class="dashboard">
         <!-- Sidebar -->
         <div class="sidebar">
-            <div class="sidebar-logo">
-                <img src="./Extract Profiles to Airtable_files/666b4ed93e72317ff3029989_Direct to Airtable.png" alt="Logo">
-                <span>Profile to Airtable</span>
+            <div class="sidebar-top">
+                <div class="sidebar-logo">
+                    <img src="./Extract Profiles to Airtable_files/666b4ed93e72317ff3029989_Direct to Airtable.png" alt="Logo">
+                    <span>Profile to Airtable</span>
+                </div>
+                <ul class="sidebar-menu">
+                    <li><a href="#" class="active">API Keys</a></li>
+                </ul>
             </div>
-            <ul class="sidebar-menu">
-                <li><a href="#" class="active">API Keys</a></li>
-                <li><a href="#">Documentation</a></li>
-                <li><a href="#">Help Center</a></li>
-            </ul>
+            <div class="sidebar-bottom">
+                <a href="#" class="logout-btn" onclick="handleLogout()">Logout</a>
+            </div>
         </div>
 
         <!-- Main Content -->
         <div class="main-content">
             <div class="content-header">
                 <h1>API Keys</h1>
-                <a href="#" class="new-key-btn">New</a>
             </div>
 
             <div class="alert">
