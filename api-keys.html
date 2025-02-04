@@ -158,11 +158,11 @@
     </style>
     <script>
         // Check if user is logged in
-        /*document.addEventListener('DOMContentLoaded', function() {
-            if (!localStorage.getItem('apiKey')) {
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!localStorage.getItem('apiKey') || !localStorage.getItem('userEmail') || !localStorage.getItem('token')) {
                 window.location.href = 'login.html';
             }
-        });*/
+        });
         
         function copyApiKey(key) {
             navigator.clipboard.writeText(key)
@@ -240,7 +240,7 @@
         // Call fetchUserData when page loads
         document.addEventListener('DOMContentLoaded', fetchUserData);
 
-        // Add this function before the closing </script> tag
+        // Add this function before the closing /script tag
         function handleLogout() {
             // Clear all stored data
             localStorage.removeItem('token');
