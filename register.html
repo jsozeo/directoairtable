@@ -144,6 +144,25 @@
                     if (mainApiResponse.ok) {
                         const mainApiData = await mainApiResponse.json();
                         console.log('Main API registration successful:', mainApiData);
+                        
+                        // Hide registration form elements
+                        document.querySelector('.auth-form').style.display = 'none';
+                        document.querySelector('.auth-title').style.display = 'none';
+                        document.querySelector('.auth-link').style.display = 'none';
+                        
+                        // Show success message
+                        const successMessage = document.querySelector('.success-message');
+                        successMessage.innerHTML = `
+                            <h3>Registration Successful!</h3>
+                            <p>${mainApiData.message}</p>
+                            <p>Redirecting to login page in 3 seconds...</p>
+                        `;
+                        successMessage.style.display = 'block';
+                        
+                        // Redirect after 3 seconds
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 3000);
                     } else {
                         console.error('Main API registration failed, but continuing...');
                     }
@@ -152,12 +171,6 @@
                     // Continue even if main API registration fails
                 }
 
-                // Show success message regardless of main API result
-                document.querySelector('.auth-form').style.display = 'none';
-                document.querySelector('.auth-title').style.display = 'none';
-                document.querySelector('.auth-link').style.display = 'none';
-                document.querySelector('.success-message').style.display = 'block';
-                
             } catch (error) {
                 console.error('Registration error:', error);
                 alert('Registration failed: ' + error.message);

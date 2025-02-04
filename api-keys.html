@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>API Keys - Profiles to Airtable</title>
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link href="./Extract Profiles to Airtable_files/chrome-extension-prop2.webflow.b67937007.css" rel="stylesheet" type="text/css">
+    <link href="./Extract Profiles to Airtable_files/666b4ed93e72317ff3029989_Direct to Airtable.png" rel="shortcut icon" type="image/x-icon">
+    <link href="./Extract Profiles to Airtable_files/666b4ed93e72317ff3029989_Direct to Airtable.png" rel="apple-touch-icon">
+    <style>
+        /* Dashboard Layout */
+        .dashboard {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: #132134;
+            color: white;
+            padding: 20px;
+        }
+        
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .sidebar-logo img {
+            height: 35px;
+            margin-right: 10px;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .sidebar-menu li {
+            margin-bottom: 10px;
+        }
+        
+        .sidebar-menu a {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .sidebar-menu a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-menu a.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            background-color: #f8f9fa;
+        }
+        
+        /* Header */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .new-key-btn {
+            background-color: #132134;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+        
+        /* API Keys Table */
+        .api-keys-table {
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .api-keys-table th,
+        .api-keys-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .api-keys-table th {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .copy-btn {
+            background: none;
+            border: none;
+            color: #132134;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        .edit-btn {
+            color: #132134;
+            text-decoration: none;
+        }
+        
+        /* Alert Box */
+        .alert {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .alert a {
+            color: #533f03;
+            text-decoration: underline;
+        }
+    </style>
+    <script>
+        // Check if user is logged in
+        /*document.addEventListener('DOMContentLoaded', function() {
+            if (!localStorage.getItem('apiKey')) {
+                window.location.href = 'login.html';
+            }
+        });*/
+        
+        function copyApiKey(key) {
+            navigator.clipboard.writeText(key)
+                .then(() => alert('API key copied to clipboard!'))
+                .catch(err => console.error('Failed to copy:', err));
+        }
+
+        async function fetchUserData() {
+            try {
+                // Get user email and token from localStorage
+                const userEmail = localStorage.getItem('userEmail');
+                const token = localStorage.getItem('token');
+
+                if (!userEmail || !token) {
+                    console.error('User email or token not found');
+                    return;
+                }
+
+                const requestBody = {
+                    user: {
+                        email: userEmail
+                    },
+                    token: token,
+                    sqlQuery: "SELECT users.*, credits.* FROM users JOIN credits ON users.id = credits.user_id WHERE users.email = $1;",
+                    parameters: [userEmail]
+                };
+
+                const response = await fetch('https://api.mixed-marketing-actions.ovh/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': 'mV3xihTh7m9ypwEAvrsxmWDwghb52jD5nQfotH44'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const result = await response.json();
+                
+                if (result.success && result.data.length > 0) {
+                    updateTable(result.data);
+                } else {
+                    console.error('No data returned or query failed:', result.message);
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        }
+
+        function updateTable(data) {
+            const tbody = document.querySelector('.api-keys-table tbody');
+            tbody.innerHTML = data.map(user => `
+                <tr>
+                    <td>${user.email}</td>
+                    <td>${user.name}</td>
+                    <td>
+                        <button class="copy-btn" onclick="copyApiKey('${user.x_api_key}')">Copy</button>
+                    </td>
+                    <td>${user.plan}</td>
+                    <td>${user.free_credits}</td>
+                    <td>${user.paid_credits}</td>
+                    <td>${new Date(user.last_reset).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Call fetchUserData when page loads
+        document.addEventListener('DOMContentLoaded', fetchUserData);
+    </script>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <img src="./Extract Profiles to Airtable_files/666b4ed93e72317ff3029989_Direct to Airtable.png" alt="Logo">
+                <span>Profile to Airtable</span>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="active">API Keys</a></li>
+                <li><a href="#">Documentation</a></li>
+                <li><a href="#">Help Center</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="content-header">
+                <h1>API Keys</h1>
+                <a href="#" class="new-key-btn">New</a>
+            </div>
+
+            <div class="alert">
+                You don't have an active subscription. 
+                <a href="#">Go to /app/ozeo/settings/subscription</a>
+            </div>
+
+            <table class="api-keys-table">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Name</th>
+                        <th>API Key</th>
+                        <th>Plan Type</th>
+                        <th>Free Credits</th>
+                        <th>Paid Credits</th>
+                        <th>Last Reset</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html> 
