@@ -265,8 +265,7 @@
                         <button class="copy-btn" onclick="copyApiKey('${user.x_api_key}')">Copy</button>
                     </td>
                     <td>${user.plan}</td>
-                    <td>${user.free_credits}</td>
-                    <td>${user.paid_credits}</td>
+                    <td>${user.plan === 'free' ? user.free_credits : user.paid_credits}</td>
                     <td>${new Date(user.last_reset).toLocaleDateString()}</td>
                 </tr>
             `).join('');
@@ -311,7 +310,7 @@
 
             <div class="alert">
                 You don't have an active subscription. 
-                <a href="https://buy.stripe.com/bIY9Cr6gV7HpdDa6oA" target="_blank">Purchase a subscription</a>
+                <a href="https://buy.stripe.com/bIY9Cr6gV7HpdDa6oA?prefilled_email=${encodeURIComponent(localStorage.getItem('userEmail'))}" target="_blank">Purchase a subscription</a>
             </div>
 
             <table class="api-keys-table">
@@ -321,8 +320,7 @@
                         <th>Name</th>
                         <th>API Key</th>
                         <th>Plan Type</th>
-                        <th>Free Credits</th>
-                        <th>Paid Credits</th>
+                        <th>Credits</th>
                         <th>Last Reset</th>
                     </tr>
                 </thead>
