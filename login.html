@@ -73,7 +73,10 @@
                         'Origin': window.location.origin
                     },
                     mode: 'cors',
-                    body: JSON.stringify(formData)
+                    body: JSON.stringify({
+                        ...formData,
+                        service_id: '21647ac6-b6a1-4431-a7b6-dd603ed587e3'
+                    })
                 });
                 
                 console.log('Response received:', {
