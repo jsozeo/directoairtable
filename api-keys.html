@@ -253,7 +253,7 @@
                     },
                     token: token,
                     service: '21647ac6-b6a1-4431-a7b6-dd603ed587e3',
-                    sqlQuery: "SELECT users.*, credits.* FROM users JOIN credits ON users.id = credits.user_id WHERE users.email = $1;",
+                    sqlQuery: "SELECT users.*, credits.* FROM users JOIN credits ON users.id = credits.user_id WHERE users.email = $1 and users.service_id = $2;",
                     parameters: [userEmail]
                 };
 
