@@ -266,7 +266,7 @@
                     body: JSON.stringify(requestBody)
                 });
 
-                const result = await response.json();
+
                 
                 if (result.success && result.data.length > 0) {
                     updateTable(result.data);
@@ -329,6 +329,7 @@
                 </div>
                 <ul class="sidebar-menu">
                     <li><a href="#" class="active">API Keys</a></li>
+                    <li><a href="destinations.html">Destinations</a></li>
                 </ul>
             </div>
             <a href="#" class="logout-btn" onclick="handleLogout()">Logout</a>
