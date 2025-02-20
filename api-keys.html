@@ -266,7 +266,14 @@
                     body: JSON.stringify(requestBody)
                 });
 
-
+                // Add logging for query response
+                const result = await response.json();
+                console.log('Query Response:', {
+                    success: result.success,
+                    message: result.message,
+                    data: result.data,
+                    fullResponse: result
+                });
                 
                 if (result.success && result.data.length > 0) {
                     updateTable(result.data);
