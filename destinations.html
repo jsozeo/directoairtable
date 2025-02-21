@@ -282,33 +282,29 @@
 
                 if (result.success && result.data.length > 0) {
                     const userOption = result.data[0].option;
-                    document.getElementById('destinationSelect').value = userOption || 'excel';
-                    updateConnectionStatus(userOption);
+                    const select = document.getElementById('destinationSelect');
+                    select.value = userOption || 'excel';
+                    handleDestinationChange(select);
                 }
             } catch (error) {
                 console.error('Error fetching user destination:', error);
             }
         }
 
-        function updateConnectionStatus(destination) {
-            const statusDiv = document.querySelector('.connection-status');
-            const connectButton = document.querySelector('.connect-button');
+        function handleDestinationChange(select) {
+            console.log('Destination changed to:', select.value);
             const airtableAuthContainer = document.querySelector('.airtable-auth-container');
-
-            if (destination === 'airtable') {
+            const statusDiv = document.querySelector('.connection-status');
+            
+            if (select.value === 'airtable') {
+                console.log('Showing Airtable auth container');
                 statusDiv.style.display = 'none';
-                connectButton.style.display = 'none';
                 airtableAuthContainer.style.display = 'block';
             } else {
+                console.log('Hiding Airtable auth container');
                 statusDiv.style.display = 'none';
-                connectButton.style.display = 'none';
                 airtableAuthContainer.style.display = 'none';
             }
-        }
-
-        function handleDestinationChange(select) {
-            updateConnectionStatus(select.value);
-            // Here you would also make an API call to update the user's preference
         }
 
         function handleLogout() {
