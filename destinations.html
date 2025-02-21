@@ -342,8 +342,6 @@
   'https://api.mixed-marketing-actions.ovh/action/linkedin_to_airtable/auth' \\
   -H 'Content-Type: application/json' \\
   -H 'Accept: */*' \\
-  -H 'Origin: ${window.location.origin}' \\
-  -H 'x-api-key: mV3xihTh7m9ypwEAvrsxmWDwghb52jD5nQfotH44' \\
   -d '${JSON.stringify(requestBody, null, 2)}'`;
 
                 console.log('Equivalent cURL command:', curlCommand);
@@ -352,10 +350,8 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': '*/*',
-                        'Origin': window.location.origin
+                        'Accept': '*/*'
                     },
-                    mode: 'cors',
                     body: JSON.stringify(requestBody)
                 });
 
