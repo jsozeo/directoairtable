@@ -357,11 +357,22 @@
                     body: JSON.stringify(requestBody)
                 });
 
-                const result = await response.json();
-                console.log('Airtable Auth Response:', {
+                // Log the raw response details
+                console.log('Raw Response:', {
                     status: response.status,
-                    ok: response.ok,
-                    result: result
+                    statusText: response.statusText,
+                    headers: Object.fromEntries(response.headers.entries()),
+                    ok: response.ok
+                });
+
+                const result = await response.json();
+                
+                // Log the parsed response data
+                console.log('Parsed Response:', {
+                    fullResult: result,
+                    success: result.success,
+                    message: result.message,
+                    error: result.error
                 });
 
                 if (response.ok && result.success) {
