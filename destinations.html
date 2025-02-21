@@ -369,12 +369,24 @@
                     fullResult: result,
                     success: result.success,
                     message: result.message,
-                    error: result.error
+                    bases: result.response?.bases
                 });
 
                 if (response.ok && result.success) {
-                    authMessage.textContent = 'Airtable connection successful!';
+                    // Create success message with bases information
+                    const basesInfo = result.response?.bases
+                        .map(base => `• ${base.name} (${base.permissionLevel})`)
+                        .join('\n');
+                    
+                    authMessage.innerHTML = `
+                        <strong>Airtable connection successful!</strong><br>
+                        Connected bases:<br>
+                        ${basesInfo}
+                    `;
                     authMessage.className = 'auth-message success';
+                    
+                    // Update the select dropdown to keep airtable selected
+                    document.getElementById('destinationSelect').value = 'airtable';
                 } else {
                     const errorMsg = result.message || result.error || 'Failed to connect to Airtable';
                     authMessage.textContent = errorMsg;
