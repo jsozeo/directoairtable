@@ -328,12 +328,21 @@
             }
 
             try {
+                console.log('Sending auth request with:', {
+                    email: userEmail,
+                    hasToken: !!token,
+                    airtableTokenLength: airtableToken.length
+                });
+
                 const response = await fetch('https://api.mixed-marketing-actions.ovh/actions/linkedin_to_airtable/auth', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'x-api-key': 'mV3xihTh7m9ypwEAvrsxmWDwghb52jD5nQfotH44'
+                        'x-api-key': 'mV3xihTh7m9ypwEAvrsxmWDwghb52jD5nQfotH44',
+                        'Accept': 'application/json',
+                        'Origin': window.location.origin
                     },
+                    mode: 'cors',
                     body: JSON.stringify({
                         user: {
                             email: userEmail
@@ -345,20 +354,25 @@
                 });
 
                 const result = await response.json();
-                console.log('Airtable Auth Response:', result);
+                console.log('Airtable Auth Response:', {
+                    status: response.status,
+                    ok: response.ok,
+                    result: result
+                });
 
-                if (response.ok) {
+                if (response.ok && result.success) {
                     authMessage.textContent = 'Airtable connection successful!';
                     authMessage.className = 'auth-message success';
                 } else {
-                    authMessage.textContent = result.message || 'Failed to connect to Airtable';
+                    const errorMsg = result.message || result.error || 'Failed to connect to Airtable';
+                    authMessage.textContent = errorMsg;
                     authMessage.className = 'auth-message error';
                 }
                 authMessage.style.display = 'block';
 
             } catch (error) {
                 console.error('Error validating Airtable token:', error);
-                authMessage.textContent = 'An error occurred while validating the token';
+                authMessage.textContent = 'An error occurred while validating the token. Please check your token and try again.';
                 authMessage.className = 'auth-message error';
                 authMessage.style.display = 'block';
             }
