@@ -334,6 +334,17 @@
                     airtableTokenLength: airtableToken.length
                 });
 
+                const requestBody = {
+                    user: {
+                        email: userEmail
+                    },
+                    token: token,
+                    service_id: '21647ac6-b6a1-4431-a7b6-dd603ed587e3',
+                    airtable_token: airtableToken
+                };
+
+                console.log('Request body:', requestBody);
+
                 const response = await fetch('https://api.mixed-marketing-actions.ovh/actions/linkedin_to_airtable/auth', {
                     method: 'POST',
                     headers: {
@@ -343,14 +354,7 @@
                         'Origin': window.location.origin
                     },
                     mode: 'cors',
-                    body: JSON.stringify({
-                        user: {
-                            email: userEmail
-                        },
-                        token: token,
-                        service_id: '21647ac6-b6a1-4431-a7b6-dd603ed587e3',
-                        airtable_token: airtableToken
-                    })
+                    body: JSON.stringify(requestBody)
                 });
 
                 const result = await response.json();
