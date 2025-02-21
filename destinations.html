@@ -153,6 +153,60 @@
         .connect-button:hover {
             background-color: #1f3553;
         }
+
+        /* Add these new styles */
+        .airtable-auth-container {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+
+        .airtable-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .validate-button {
+            background-color: #132134;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .validate-button:hover {
+            background-color: #1f3553;
+        }
+
+        .auth-message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .auth-message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .auth-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
     </style>
     <script>
         // Check if user is logged in (reuse from api-keys.html)
@@ -239,17 +293,16 @@
         function updateConnectionStatus(destination) {
             const statusDiv = document.querySelector('.connection-status');
             const connectButton = document.querySelector('.connect-button');
+            const airtableAuthContainer = document.querySelector('.airtable-auth-container');
 
             if (destination === 'airtable') {
-                statusDiv.style.display = 'block';
-                connectButton.style.display = 'block';
-                // Here you would check if they're actually connected to Airtable
-                // For now, we'll assume they're not connected
-                statusDiv.className = 'connection-status not-connected';
-                statusDiv.textContent = 'Not connected to Airtable';
+                statusDiv.style.display = 'none';
+                connectButton.style.display = 'none';
+                airtableAuthContainer.style.display = 'block';
             } else {
                 statusDiv.style.display = 'none';
                 connectButton.style.display = 'none';
+                airtableAuthContainer.style.display = 'none';
             }
         }
 
@@ -263,6 +316,56 @@
             localStorage.removeItem('apiKey');
             localStorage.removeItem('userEmail');
             window.location.href = '/';
+        }
+
+        async function validateAirtableToken() {
+            const airtableToken = document.getElementById('airtableToken').value.trim();
+            const authMessage = document.querySelector('.auth-message');
+            const userEmail = localStorage.getItem('userEmail');
+            const token = localStorage.getItem('token');
+
+            if (!airtableToken) {
+                authMessage.textContent = 'Please enter your Airtable token';
+                authMessage.className = 'auth-message error';
+                authMessage.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch('https://api.mixed-marketing-actions.ovh/actions/linkedin_to_airtable/auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': 'mV3xihTh7m9ypwEAvrsxmWDwghb52jD5nQfotH44'
+                    },
+                    body: JSON.stringify({
+                        user: {
+                            email: userEmail
+                        },
+                        token: token,
+                        service_id: '21647ac6-b6a1-4431-a7b6-dd603ed587e3',
+                        airtable_token: airtableToken
+                    })
+                });
+
+                const result = await response.json();
+                console.log('Airtable Auth Response:', result);
+
+                if (response.ok) {
+                    authMessage.textContent = 'Airtable connection successful!';
+                    authMessage.className = 'auth-message success';
+                } else {
+                    authMessage.textContent = result.message || 'Failed to connect to Airtable';
+                    authMessage.className = 'auth-message error';
+                }
+                authMessage.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error validating Airtable token:', error);
+                authMessage.textContent = 'An error occurred while validating the token';
+                authMessage.className = 'auth-message error';
+                authMessage.style.display = 'block';
+            }
         }
     </script>
 </head>
@@ -293,11 +396,26 @@
                 <h2>Choose Your Data Destination</h2>
                 <select id="destinationSelect" class="destination-select" onchange="handleDestinationChange(this)">
                     <option value="excel">Excel Download</option>
-                    <option value="airtable">Airtable (coming soon)</option>
+                    <option value="airtable">Airtable</option>
                 </select>
 
                 <div class="connection-status"></div>
-                <button class="connect-button" onclick="window.location.href='#'">Connect to Airtable</button>
+                
+                <!-- Add the new Airtable authentication container -->
+                <div class="airtable-auth-container">
+                    <h3>Connect to Airtable</h3>
+                    <p>Please enter your Airtable API token to connect your account.</p>
+                    <input 
+                        type="password" 
+                        id="airtableToken" 
+                        class="airtable-input" 
+                        placeholder="Enter your Airtable token"
+                    >
+                    <button class="validate-button" onclick="validateAirtableToken()">
+                        Validate Connection
+                    </button>
+                    <div class="auth-message"></div>
+                </div>
             </div>
         </div>
     </div>
