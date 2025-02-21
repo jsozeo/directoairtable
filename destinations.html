@@ -328,30 +328,20 @@
             }
 
             try {
-                const requestBody = {
-                    user: {
-                        email: userEmail
-                    },
-                    token: token,
-                    service_id: '21647ac6-b6a1-4431-a7b6-dd603ed587e3',
-                    airtable_token: airtableToken
-                };
-
-                // Generate and log cURL command
-                const curlCommand = `curl -X POST \\
-  'https://api.mixed-marketing-actions.ovh/action/linkedin_to_airtable/auth' \\
-  -H 'Content-Type: application/json' \\
-  -H 'Accept: */*' \\
-  -d '${JSON.stringify(requestBody, null, 2)}'`;
-
-                console.log('Equivalent cURL command:', curlCommand);
-
                 const response = await fetch('https://api.mixed-marketing-actions.ovh/action/linkedin_to_airtable/auth', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': '*/*',
                     },
-                    body: JSON.stringify(requestBody)
+                    body: JSON.stringify({
+                        user: {
+                            email: userEmail
+                        },
+                        token: token,
+                        service_id: '21647ac6-b6a1-4431-a7b6-dd603ed587e3',
+                        airtable_token: airtableToken
+                    })
                 });
 
                 // Log the raw response details
@@ -393,6 +383,22 @@
                     authMessage.className = 'auth-message error';
                 }
                 authMessage.style.display = 'block';
+
+                const requestBody = {
+                    user: {
+                        email: userEmail
+                    },
+                    token: token,
+                    service_id: '21647ac6-b6a1-4431-a7b6-dd603ed587e3',
+                    airtable_token: airtableToken
+                };
+
+                // Generate and log cURL command
+                const curlCommand = `curl -X POST \\
+  'https://api.mixed-marketing-actions.ovh/action/linkedin_to_airtable/auth' \\
+  -H 'Content-Type: application/json' \\
+  -H 'Accept: */*' \\
+  -d '${JSON.stringify(requestBody, null, 2)}'`;
 
             } catch (error) {
                 console.error('Error validating Airtable token:', error);
