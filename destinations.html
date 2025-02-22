@@ -629,6 +629,7 @@
             const selectedBaseData = JSON.parse(baseSelect.value);
             const userEmail = localStorage.getItem('userEmail');
             const token = localStorage.getItem('token');
+            const airtableToken = document.getElementById('airtableToken').value.trim();
             
             try {
                 const response = await fetch('https://api.mixed-marketing-actions.ovh/action/linkedin_to_airtable/get_table', {
@@ -638,7 +639,8 @@
                         'Accept': '*/*'
                     },
                     body: JSON.stringify({
-                        baseId: selectedBaseData.baseId.id,
+                        airtable_token: airtableToken,
+                        baseId: selectedBaseData.id,
                         user: {
                             email: userEmail
                         },
@@ -655,7 +657,7 @@
                     const authMessage = document.querySelector('.auth-message');
                     authMessage.innerHTML = `
                         <strong>Base selected successfully!</strong><br>
-                        Using base: ${selectedBaseData.baseId.name}
+                        Using base: ${selectedBaseData.name}
                     `;
                     authMessage.className = 'auth-message success';
                     authMessage.style.display = 'block';
@@ -729,38 +731,38 @@
             const selectedBaseData = JSON.parse(baseSelect.value);
             const userEmail = localStorage.getItem('userEmail');
             const token = localStorage.getItem('token');
+            const airtableToken = document.getElementById('airtableToken').value.trim();
             
             try {
                 // Get existing options from localStorage
                 const existingOptions = JSON.parse(localStorage.getItem('destination_options') || '[]');
                 
-                // Create the new option
+                // Create the new option with airtable_token
                 const newOption = {
                     tool: 'airtable',
                     baseId: {
-                        name: selectedBaseData.baseId.name,
-                        id: selectedBaseData.baseId.id
+                        name: selectedBaseData.name,
+                        id: selectedBaseData.id
                     },
                     tableId: {
                         name: selectedTableData.name,
                         id: selectedTableData.id
                     },
                     selected: true,
-                    displayName: `Airtable - ${selectedBaseData.baseId.name} - ${selectedTableData.name}`
+                    displayName: `Airtable - ${selectedBaseData.name} - ${selectedTableData.name}`,
+                    airtable_token: airtableToken // Add airtable_token to the option
                 };
 
-                // Set all existing options to not selected and ensure they have displayNames
+                // Set all existing options to not selected
                 existingOptions.forEach(opt => {
                     opt.selected = false;
-                    // Add display name to existing options if they don't have one
-                    if (!opt.displayName) {
-                        if (opt.tool === 'airtable') {
-                            opt.displayName = `Airtable - ${opt.baseId.name} - ${opt.tableId.name}`;
-                        } else if (opt.tool === 'excel') {
-                            opt.displayName = 'Excel Download';
-                        } else if (opt.tool === 'google_sheets') {
-                            opt.displayName = `Google Sheets - ${opt.baseId.name} - ${opt.tableId.name}`;
-                        }
+                    // Keep existing airtable_token if it exists
+                    if (opt.tool === 'airtable' && opt.airtable_token) {
+                        opt.airtable_token = airtableToken;
+                    }
+                    // Make sure Excel option has correct structure if it exists
+                    if (opt.tool === 'excel' && !opt.displayName) {
+                        opt.displayName = 'Excel Download';
                     }
                 });
 
@@ -774,10 +776,10 @@
                     existingOptions.push(newOption);
                 }
 
-                // Update localStorage
+                // Update localStorage with new options including airtable_token
                 localStorage.setItem('destination_options', JSON.stringify(existingOptions));
 
-                // Make API call to destination_selection
+                // Make API call to destination_selection with updated options
                 const destinationResponse = await fetch('https://api.mixed-marketing-actions.ovh/action/linkedin_to_airtable/destination_selection', {
                     method: 'POST',
                     headers: {
@@ -790,7 +792,7 @@
                         },
                         token: token,
                         service_id: '21647ac6-b6a1-4431-a7b6-dd603ed587e3',
-                        option: existingOptions
+                        option: existingOptions // Send complete options including airtable_token
                     })
                 });
 
@@ -798,11 +800,14 @@
                 console.log('Destination Selection Response:', destinationResult);
 
                 if (destinationResponse.ok && destinationResult.success) {
+                    // Update the destination dropdown with new options
+                    updateDestinationDropdown();
+
                     // Show success message
                     const authMessage = document.querySelector('.auth-message');
                     authMessage.innerHTML = `
                         <strong>Table configuration saved successfully!</strong><br>
-                        Your profiles will be exported to table "${selectedTableData.name}" in base "${selectedBaseData.baseId.name}".
+                        Your profiles will be exported to table "${selectedTableData.name}" in base "${selectedBaseData.name}".
                     `;
                     authMessage.className = 'auth-message success';
                     authMessage.style.display = 'block';
