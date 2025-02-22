@@ -261,6 +261,37 @@
             margin: 10px 0;
             font-size: 16px;
         }
+
+        /* Add styles for fields display */
+        .fields-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+        }
+
+        .fields-info h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .fields-info ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .fields-info li {
+            padding: 5px 0;
+            border-bottom: 1px solid #e9ecef;
+            color: #6c757d;
+        }
+
+        .fields-info li:last-child {
+            border-bottom: none;
+        }
     </style>
     <script>
         // Check if user is logged in and verify
@@ -445,14 +476,6 @@
                     })
                 });
 
-                // Log the raw response details
-                console.log('Raw Tables Response:', {
-                    status: response.status,
-                    statusText: response.statusText,
-                    headers: Object.fromEntries(response.headers.entries()),
-                    ok: response.ok
-                });
-
                 const result = await response.json();
                 console.log('Tables Response:', result);
 
@@ -473,13 +496,19 @@
                     // Clear existing options
                     tableSelect.innerHTML = '';
                     
-                    // Add tables to dropdown
-                    result.tables.forEach(table => {
+                    // Add tables to dropdown with their field count
+                    result.response.tables.forEach(table => {
                         const option = document.createElement('option');
-                        option.value = table.id;
-                        option.textContent = table.name;
+                        option.value = JSON.stringify({
+                            id: table.id,
+                            fields: table.fields
+                        });
+                        option.textContent = `${table.name} (${table.fields.length} fields)`;
                         tableSelect.appendChild(option);
                     });
+
+                    // Store tables data for later use
+                    window.tablesData = result.response.tables;
 
                     // Show the table selection container
                     tableSelectionContainer.style.display = 'block';
@@ -496,18 +525,43 @@
             }
         }
 
-        // Placeholder for table selection handler
+        // Add this new function to show table fields
+        function showTableFields(tableId) {
+            const table = window.tablesData.find(t => t.id === tableId);
+            if (!table) return;
+
+            const fieldsContainer = document.createElement('div');
+            fieldsContainer.className = 'fields-info';
+            fieldsContainer.innerHTML = `
+                <h4>Available Fields:</h4>
+                <ul>
+                    ${table.fields.map(field => `
+                        <li>${field.name} (${field.type})</li>
+                    `).join('')}
+                </ul>
+            `;
+
+            // Update the fields display
+            const existingFields = document.querySelector('.fields-info');
+            if (existingFields) {
+                existingFields.replaceWith(fieldsContainer);
+            } else {
+                document.querySelector('.table-selection-container').appendChild(fieldsContainer);
+            }
+        }
+
+        // Update the saveSelectedTable function
         async function saveSelectedTable() {
             const tableSelect = document.getElementById('tableSelect');
-            const selectedTableId = tableSelect.value;
-            const selectedTableName = tableSelect.options[tableSelect.selectedIndex].text;
+            const selectedTableData = JSON.parse(tableSelect.value);
             
             console.log('Selected table:', {
-                id: selectedTableId,
-                name: selectedTableName
+                id: selectedTableData.id,
+                fields: selectedTableData.fields
             });
             
-            // We'll implement the actual save logic when you provide the next step
+            // Show the fields for the selected table
+            showTableFields(selectedTableData.id);
         }
     </script>
 </head>
