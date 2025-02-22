@@ -329,7 +329,37 @@
                 const data = await response.json();
                 if (!data.verified) {
                     window.location.href = 'login.html';
+                    return;
                 }
+
+                // Store option in localStorage
+                if (data.option) {
+                    localStorage.setItem('destination_options', JSON.stringify(data.option));
+                    
+                    // Find the selected tool
+                    const selectedOption = data.option.find(opt => opt.selected);
+                    if (selectedOption) {
+                        // Set the dropdown to the selected tool
+                        const destinationSelect = document.getElementById('destinationSelect');
+                        destinationSelect.value = selectedOption.tool;
+                        
+                        // Trigger the change handler
+                        handleDestinationChange(destinationSelect);
+
+                        // If it's airtable and we have baseId and tableId, we should show those
+                        if (selectedOption.tool === 'airtable' && selectedOption.baseId && selectedOption.tableId) {
+                            // Show the airtable container
+                            document.querySelector('.airtable-auth-container').style.display = 'block';
+                            
+                            // We might want to auto-populate these values or show them as selected
+                            console.log('Stored Airtable configuration:', {
+                                baseId: selectedOption.baseId,
+                                tableId: selectedOption.tableId
+                            });
+                        }
+                    }
+                }
+
             } catch (error) {
                 console.error('Error verifying user:', error);
                 window.location.href = 'login.html';
@@ -554,14 +584,89 @@
         async function saveSelectedTable() {
             const tableSelect = document.getElementById('tableSelect');
             const selectedTableData = JSON.parse(tableSelect.value);
+            const baseSelect = document.getElementById('baseSelect');
+            const selectedBaseId = baseSelect.value;
+            const selectedBaseName = baseSelect.options[baseSelect.selectedIndex].text;
+            const selectedTableName = tableSelect.options[tableSelect.selectedIndex].text.split(' (')[0];
+            const userEmail = localStorage.getItem('userEmail');
+            const token = localStorage.getItem('token');
             
-            console.log('Selected table:', {
-                id: selectedTableData.id,
-                fields: selectedTableData.fields
-            });
-            
-            // Show the fields for the selected table
-            showTableFields(selectedTableData.id);
+            try {
+                // Get existing options from localStorage
+                const existingOptions = JSON.parse(localStorage.getItem('destination_options') || '[]');
+                
+                // Create the new option
+                const newOption = {
+                    tool: 'airtable',
+                    baseId: {
+                        name: selectedBaseName,
+                        id: selectedBaseId
+                    },
+                    tableId: {
+                        name: selectedTableName,
+                        id: selectedTableData.id
+                    },
+                    selected: true
+                };
+
+                // Set all existing options to not selected
+                existingOptions.forEach(opt => opt.selected = false);
+
+                // Find if airtable option exists
+                const airtableIndex = existingOptions.findIndex(opt => opt.tool === 'airtable');
+                if (airtableIndex !== -1) {
+                    // Update existing airtable option
+                    existingOptions[airtableIndex] = newOption;
+                } else {
+                    // Add new airtable option
+                    existingOptions.push(newOption);
+                }
+
+                // Update localStorage
+                localStorage.setItem('destination_options', JSON.stringify(existingOptions));
+
+                // Make API call to destination_selection
+                const destinationResponse = await fetch('https://api.mixed-marketing-actions.ovh/action/linkedin_to_airtable/destination_selection', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': '*/*'
+                    },
+                    body: JSON.stringify({
+                        user: {
+                            email: userEmail
+                        },
+                        token: token,
+                        service_id: '21647ac6-b6a1-4431-a7b6-dd603ed587e3',
+                        option: existingOptions
+                    })
+                });
+
+                const destinationResult = await destinationResponse.json();
+                console.log('Destination Selection Response:', destinationResult);
+
+                if (destinationResponse.ok && destinationResult.success) {
+                    // Show success message
+                    const authMessage = document.querySelector('.auth-message');
+                    authMessage.innerHTML = `
+                        <strong>Table configuration saved successfully!</strong><br>
+                        Your profiles will be exported to table "${selectedTableName}" in base "${selectedBaseName}".
+                    `;
+                    authMessage.className = 'auth-message success';
+                    authMessage.style.display = 'block';
+
+                    // Show the fields for the selected table
+                    showTableFields(selectedTableData.id);
+                } else {
+                    throw new Error(destinationResult.message || 'Failed to save destination selection');
+                }
+            } catch (error) {
+                console.error('Error saving destination selection:', error);
+                const authMessage = document.querySelector('.auth-message');
+                authMessage.textContent = 'Failed to save destination selection. Please try again.';
+                authMessage.className = 'auth-message error';
+                authMessage.style.display = 'block';
+            }
         }
     </script>
 </head>
