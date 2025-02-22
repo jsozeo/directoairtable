@@ -574,43 +574,14 @@
                     })
                 });
 
-                // Log the raw response details
-                console.log('Raw Response:', {
-                    status: response.status,
-                    statusText: response.statusText,
-                    headers: Object.fromEntries(response.headers.entries()),
-                    ok: response.ok
-                });
-
                 const result = await response.json();
-                
-                // Log the parsed response data
-                console.log('Parsed Response:', {
-                    fullResult: result,
-                    success: result.success,
-                    message: result.message,
-                    bases: result.response?.bases
-                });
+                console.log('Airtable Auth Response:', result);
 
                 if (response.ok && result.success) {
-                    // Create success message
-                    authMessage.innerHTML = `<strong>Airtable connection successful!</strong>`;
+                    // Show success message
+                    authMessage.innerHTML = `<strong>${result.message}</strong>`;
                     authMessage.className = 'auth-message success';
-                    
-                    // Update the select dropdown to keep airtable selected
-                    document.getElementById('destinationSelect').value = JSON.stringify({
-                        tool: 'airtable',
-                        baseId: {
-                            name: result.response.bases[0].name,
-                            id: result.response.bases[0].id
-                        },
-                        tableId: {
-                            name: result.response.tables[0].name,
-                            id: result.response.tables[0].id
-                        },
-                        selected: true,
-                        displayName: `Airtable - ${result.response.bases[0].name} - ${result.response.tables[0].name}`
-                    });
+                    authMessage.style.display = 'block';
 
                     // Populate and show base selection
                     const baseSelect = document.getElementById('baseSelect');
@@ -623,18 +594,11 @@
                     result.response.bases.forEach(base => {
                         const option = document.createElement('option');
                         option.value = JSON.stringify({
-                            tool: 'airtable',
-                            baseId: {
-                                name: base.name,
-                                id: base.id
-                            },
-                            tableId: {
-                                name: result.response.tables[0].name,
-                                id: result.response.tables[0].id
-                            },
-                            selected: true,
-                            displayName: `Airtable - ${base.name} - ${result.response.tables[0].name}`
+                            id: base.id,
+                            name: base.name,
+                            permissionLevel: base.permissionLevel
                         });
+                        option.textContent = `${base.name} (${base.permissionLevel})`;
                         baseSelect.appendChild(option);
                     });
 
@@ -642,7 +606,7 @@
                     baseSelectionContainer.style.display = 'block';
                     
                 } else {
-                    const errorMsg = result.message || result.error || 'Failed to connect to Airtable';
+                    const errorMsg = result.message || 'Failed to connect to Airtable';
                     authMessage.textContent = errorMsg;
                     authMessage.className = 'auth-message error';
                     authMessage.style.display = 'block';
