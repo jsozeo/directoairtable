@@ -800,10 +800,6 @@
 
                     // Reset and hide all forms
                     resetDestinationForms();
-
-                    // Reset the main destination dropdown to show the first option
-                    const destinationSelect = document.getElementById('destinationSelect');
-                    destinationSelect.selectedIndex = 0;
                 } else {
                     throw new Error(destinationResult.message || 'Failed to save destination selection');
                 }
@@ -816,7 +812,7 @@
             }
         }
 
-        // Add new function to reset forms
+        // Update reset function to be more specific
         function resetDestinationForms() {
             // Hide all containers
             document.querySelector('.new-destination-container').style.display = 'none';
@@ -824,7 +820,7 @@
             document.querySelector('.base-selection-container').style.display = 'none';
             document.querySelector('.table-selection-container').style.display = 'none';
 
-            // Reset all form values
+            // Reset only the form values for new destination process
             document.getElementById('newDestinationType').value = '';
             document.getElementById('airtableToken').value = '';
             document.getElementById('baseSelect').innerHTML = '';
