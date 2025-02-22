@@ -798,8 +798,12 @@
                     authMessage.className = 'auth-message success';
                     authMessage.style.display = 'block';
 
-                    // Show the fields for the selected table
-                    showTableFields(selectedTableData.id);
+                    // Reset and hide all forms
+                    resetDestinationForms();
+
+                    // Reset the main destination dropdown to show the first option
+                    const destinationSelect = document.getElementById('destinationSelect');
+                    destinationSelect.selectedIndex = 0;
                 } else {
                     throw new Error(destinationResult.message || 'Failed to save destination selection');
                 }
@@ -810,6 +814,32 @@
                 authMessage.className = 'auth-message error';
                 authMessage.style.display = 'block';
             }
+        }
+
+        // Add new function to reset forms
+        function resetDestinationForms() {
+            // Hide all containers
+            document.querySelector('.new-destination-container').style.display = 'none';
+            document.querySelector('.airtable-auth-container').style.display = 'none';
+            document.querySelector('.base-selection-container').style.display = 'none';
+            document.querySelector('.table-selection-container').style.display = 'none';
+
+            // Reset all form values
+            document.getElementById('newDestinationType').value = '';
+            document.getElementById('airtableToken').value = '';
+            document.getElementById('baseSelect').innerHTML = '';
+            document.getElementById('tableSelect').innerHTML = '';
+
+            // Remove fields info if exists
+            const fieldsInfo = document.querySelector('.fields-info');
+            if (fieldsInfo) {
+                fieldsInfo.remove();
+            }
+
+            // Clear any existing auth messages
+            const authMessage = document.querySelector('.auth-message');
+            authMessage.style.display = 'none';
+            authMessage.innerHTML = '';
         }
     </script>
 </head>
