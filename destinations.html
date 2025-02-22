@@ -312,6 +312,25 @@
             margin-bottom: 15px;
             color: #6c757d;
         }
+
+        /* Add spacing between steps */
+        .new-destination-container,
+        .airtable-auth-container,
+        .base-selection-container,
+        .table-selection-container {
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 30px;
+        }
+
+        /* Add step numbers styling */
+        .new-destination-container h3,
+        .airtable-auth-container h3,
+        .base-selection-container h3,
+        .table-selection-container h3 {
+            color: #132134;
+            margin-bottom: 15px;
+        }
     </style>
     <script>
         // Update the dropdown options based on stored destinations
@@ -414,7 +433,7 @@
         // Add new container for destination type selection
         const newDestinationHtml = `
             <div class="new-destination-container" style="display: none;">
-                <h3>Select Destination Type</h3>
+                <h3>Step 1: Select Destination Type</h3>
                 <p>Choose the type of destination you want to add:</p>
                 <select id="newDestinationType" class="destination-select" onchange="handleNewDestinationType(this)">
                     <option value="">Select a type...</option>
@@ -869,10 +888,20 @@
                 </select>
 
                 <div class="connection-status"></div>
+
+                <!-- Step 1: Select Destination Type -->
+                <div class="new-destination-container" style="display: none;">
+                    <h3>Step 1: Select Destination Type</h3>
+                    <p>Choose the type of destination you want to add:</p>
+                    <select id="newDestinationType" class="destination-select" onchange="handleNewDestinationType(this)">
+                        <option value="">Select a type...</option>
+                        <option value="airtable">Airtable</option>
+                    </select>
+                </div>
                 
-                <!-- Add the new Airtable authentication container -->
+                <!-- Step 2: Connect to Airtable -->
                 <div class="airtable-auth-container">
-                    <h3>Connect to Airtable</h3>
+                    <h3>Step 2: Connect to Airtable</h3>
                     <p>Please enter your Airtable API token to connect your account.</p>
                     <input 
                         type="password" 
@@ -886,9 +915,9 @@
                     <div class="auth-message"></div>
                 </div>
 
-                <!-- Add the base selection container -->
+                <!-- Step 3: Select Base -->
                 <div class="base-selection-container">
-                    <h3>Select Airtable Base</h3>
+                    <h3>Step 3: Select Airtable Base</h3>
                     <p>Choose the base you want to use for storing profiles:</p>
                     <select id="baseSelect" class="base-select">
                         <!-- Options will be populated dynamically -->
@@ -898,9 +927,9 @@
                     </button>
                 </div>
 
-                <!-- Add the table selection container -->
+                <!-- Step 4: Select Table -->
                 <div class="table-selection-container">
-                    <h3>Select Airtable Table</h3>
+                    <h3>Step 4: Select Airtable Table</h3>
                     <p>Choose the table where you want to store the profiles:</p>
                     <select id="tableSelect" class="table-select">
                         <!-- Options will be populated dynamically -->
