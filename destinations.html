@@ -398,14 +398,11 @@
                     // Update dropdown with all options
                     updateDestinationDropdown();
 
-                    // Find the selected tool and show appropriate container
-                    const selectedOption = data.option.find(opt => opt.selected);
-                    if (selectedOption) {
-                        // If it's airtable and we have baseId and tableId, show the container
-                        if (selectedOption.tool === 'airtable' && selectedOption.baseId && selectedOption.tableId) {
-                            document.querySelector('.airtable-auth-container').style.display = 'block';
-                        }
-                    }
+                    // Hide all configuration containers by default
+                    document.querySelector('.airtable-auth-container').style.display = 'none';
+                    document.querySelector('.table-selection-container').style.display = 'none';
+                    document.querySelector('.base-selection-container').style.display = 'none';
+                    document.querySelector('.new-destination-container').style.display = 'none';
                 }
 
             } catch (error) {
