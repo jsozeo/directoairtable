@@ -430,13 +430,15 @@
         });
 
         async function handleDestinationChange(select) {
+            // Hide all containers first
+            document.querySelector('.airtable-auth-container').style.display = 'none';
+            document.querySelector('.table-selection-container').style.display = 'none';
+            document.querySelector('.base-selection-container').style.display = 'none';
+            document.querySelector('.new-destination-container').style.display = 'none';
+
             if (select.value === 'new_destination') {
                 // Show new destination type selection
                 document.querySelector('.new-destination-container').style.display = 'block';
-                // Hide other containers
-                document.querySelector('.airtable-auth-container').style.display = 'none';
-                document.querySelector('.table-selection-container').style.display = 'none';
-                document.querySelector('.base-selection-container').style.display = 'none';
                 return;
             }
 
@@ -480,22 +482,18 @@
                     throw new Error(result.message || 'Failed to update destination selection');
                 }
 
-                // Show/hide appropriate containers based on selection
-                const airtableAuthContainer = document.querySelector('.airtable-auth-container');
-                const tableSelectionContainer = document.querySelector('.table-selection-container');
-                const baseSelectionContainer = document.querySelector('.base-selection-container');
-
+                // Show success message
+                const authMessage = document.querySelector('.auth-message');
                 if (selectedOption.tool === 'airtable') {
-                    airtableAuthContainer.style.display = 'block';
-                    if (selectedOption.baseId && selectedOption.tableId) {
-                        baseSelectionContainer.style.display = 'block';
-                        tableSelectionContainer.style.display = 'block';
-                    }
+                    authMessage.innerHTML = `
+                        <strong>Destination updated successfully!</strong><br>
+                        Using Airtable base "${selectedOption.baseId.name}" and table "${selectedOption.tableId.name}".
+                    `;
                 } else {
-                    airtableAuthContainer.style.display = 'none';
-                    baseSelectionContainer.style.display = 'none';
-                    tableSelectionContainer.style.display = 'none';
+                    authMessage.innerHTML = `<strong>Destination updated to ${selectedOption.displayName}</strong>`;
                 }
+                authMessage.className = 'auth-message success';
+                authMessage.style.display = 'block';
 
             } catch (error) {
                 console.error('Error updating destination:', error);
