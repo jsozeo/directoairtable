@@ -294,6 +294,30 @@
         }
     </style>
     <script>
+        // Update the dropdown options based on stored destinations
+        function updateDestinationDropdown() {
+            const destinationSelect = document.getElementById('destinationSelect');
+            const storedOptions = JSON.parse(localStorage.getItem('destination_options') || '[]');
+            
+            // Clear existing options
+            destinationSelect.innerHTML = '';
+            
+            // Add default Excel option
+            const excelOption = document.createElement('option');
+            excelOption.value = 'excel';
+            excelOption.textContent = 'Excel Download';
+            destinationSelect.appendChild(excelOption);
+
+            // Add all stored options
+            storedOptions.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt.tool;
+                option.textContent = opt.displayName;
+                option.selected = opt.selected;
+                destinationSelect.appendChild(option);
+            });
+        }
+
         // Check if user is logged in and verify
         document.addEventListener('DOMContentLoaded', async function() {
             const userEmail = localStorage.getItem('userEmail');
@@ -327,35 +351,39 @@
                 }
 
                 const data = await response.json();
+                console.log('Verify Response:', data);
+
                 if (!data.verified) {
                     window.location.href = 'login.html';
                     return;
                 }
 
-                // Store option in localStorage
+                // Store option in localStorage and ensure display names
                 if (data.option) {
+                    // Add display names if they don't exist
+                    data.option.forEach(opt => {
+                        if (!opt.displayName) {
+                            if (opt.tool === 'airtable') {
+                                opt.displayName = `Airtable - ${opt.baseId.name} - ${opt.tableId.name}`;
+                            } else if (opt.tool === 'excel') {
+                                opt.displayName = 'Excel Download';
+                            } else if (opt.tool === 'google_sheets') {
+                                opt.displayName = `Google Sheets - ${opt.baseId.name} - ${opt.tableId.name}`;
+                            }
+                        }
+                    });
+
                     localStorage.setItem('destination_options', JSON.stringify(data.option));
                     
-                    // Find the selected tool
+                    // Update dropdown with all options
+                    updateDestinationDropdown();
+
+                    // Find the selected tool and show appropriate container
                     const selectedOption = data.option.find(opt => opt.selected);
                     if (selectedOption) {
-                        // Set the dropdown to the selected tool
-                        const destinationSelect = document.getElementById('destinationSelect');
-                        destinationSelect.value = selectedOption.tool;
-                        
-                        // Trigger the change handler
-                        handleDestinationChange(destinationSelect);
-
-                        // If it's airtable and we have baseId and tableId, we should show those
+                        // If it's airtable and we have baseId and tableId, show the container
                         if (selectedOption.tool === 'airtable' && selectedOption.baseId && selectedOption.tableId) {
-                            // Show the airtable container
                             document.querySelector('.airtable-auth-container').style.display = 'block';
-                            
-                            // We might want to auto-populate these values or show them as selected
-                            console.log('Stored Airtable configuration:', {
-                                baseId: selectedOption.baseId,
-                                tableId: selectedOption.tableId
-                            });
                         }
                     }
                 }
@@ -606,11 +634,24 @@
                         name: selectedTableName,
                         id: selectedTableData.id
                     },
-                    selected: true
+                    selected: true,
+                    displayName: `Airtable - ${selectedBaseName} - ${selectedTableName}`
                 };
 
-                // Set all existing options to not selected
-                existingOptions.forEach(opt => opt.selected = false);
+                // Set all existing options to not selected and ensure they have displayNames
+                existingOptions.forEach(opt => {
+                    opt.selected = false;
+                    // Add display name to existing options if they don't have one
+                    if (!opt.displayName) {
+                        if (opt.tool === 'airtable') {
+                            opt.displayName = `Airtable - ${opt.baseId.name} - ${opt.tableId.name}`;
+                        } else if (opt.tool === 'excel') {
+                            opt.displayName = 'Excel Download';
+                        } else if (opt.tool === 'google_sheets') {
+                            opt.displayName = `Google Sheets - ${opt.baseId.name} - ${opt.tableId.name}`;
+                        }
+                    }
+                });
 
                 // Find if airtable option exists
                 const airtableIndex = existingOptions.findIndex(opt => opt.tool === 'airtable');
@@ -696,8 +737,7 @@
             <div class="destination-container">
                 <h2>Choose Your Data Destination</h2>
                 <select id="destinationSelect" class="destination-select" onchange="handleDestinationChange(this)">
-                    <option value="excel">Excel Download</option>
-                    <option value="airtable">Airtable</option>
+                    <!-- Options will be populated dynamically -->
                 </select>
 
                 <div class="connection-status"></div>
