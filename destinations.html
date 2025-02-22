@@ -751,31 +751,16 @@
                     },
                     selected: true,
                     displayName: `Airtable - ${selectedBaseData.name} - ${selectedTableData.name}`,
-                    airtable_token: airtableToken // Add airtable_token to the option
+                    airtable_token: airtableToken
                 };
 
                 // Set all existing options to not selected
                 existingOptions.forEach(opt => {
                     opt.selected = false;
-                    // Keep existing airtable_token if it exists
-                    if (opt.tool === 'airtable' && opt.airtable_token) {
-                        opt.airtable_token = airtableToken;
-                    }
-                    // Make sure Excel option has correct structure if it exists
-                    if (opt.tool === 'excel' && !opt.displayName) {
-                        opt.displayName = 'Excel Download';
-                    }
                 });
 
-                // Find if airtable option exists
-                const airtableIndex = existingOptions.findIndex(opt => opt.tool === 'airtable');
-                if (airtableIndex !== -1) {
-                    // Update existing airtable option
-                    existingOptions[airtableIndex] = newOption;
-                } else {
-                    // Add new airtable option
-                    existingOptions.push(newOption);
-                }
+                // Always add as a new option
+                existingOptions.push(newOption);
 
                 // Update localStorage with new options including airtable_token
                 localStorage.setItem('destination_options', JSON.stringify(existingOptions));
@@ -793,7 +778,7 @@
                         },
                         token: token,
                         service_id: '21647ac6-b6a1-4431-a7b6-dd603ed587e3',
-                        option: existingOptions // Send complete options including airtable_token
+                        option: existingOptions
                     })
                 });
 
@@ -807,8 +792,8 @@
                     // Show success message
                     const authMessage = document.querySelector('.auth-message');
                     authMessage.innerHTML = `
-                        <strong>Table configuration saved successfully!</strong><br>
-                        Your profiles will be exported to table "${selectedTableData.name}" in base "${selectedBaseData.name}".
+                        <strong>New destination added successfully!</strong><br>
+                        Added table "${selectedTableData.name}" in base "${selectedBaseData.name}".
                     `;
                     authMessage.className = 'auth-message success';
                     authMessage.style.display = 'block';
