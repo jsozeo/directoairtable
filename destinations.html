@@ -427,37 +427,40 @@
                     const errorMsg = result.message || result.error || 'Failed to connect to Airtable';
                     authMessage.textContent = errorMsg;
                     authMessage.className = 'auth-message error';
+                    authMessage.style.display = 'block';
                     // Hide base selection if auth failed
                     document.querySelector('.base-selection-container').style.display = 'none';
-                }
-
-                // Add this new function to handle base selection
-                async function saveSelectedBase() {
-                    const baseSelect = document.getElementById('baseSelect');
-                    const selectedBaseId = baseSelect.value;
-                    const selectedBaseName = baseSelect.options[baseSelect.selectedIndex].text;
-                    
-                    // Here you would typically make an API call to save the selected base
-                    console.log('Selected base:', {
-                        id: selectedBaseId,
-                        name: selectedBaseName
-                    });
-
-                    // Show confirmation to user
-                    const authMessage = document.querySelector('.auth-message');
-                    authMessage.innerHTML = `
-                        <strong>Base selected successfully!</strong><br>
-                        Using base: ${selectedBaseName}
-                    `;
-                    authMessage.className = 'auth-message success';
-                    authMessage.style.display = 'block';
                 }
             } catch (error) {
                 console.error('Error validating Airtable token:', error);
                 authMessage.textContent = 'An error occurred while validating the token. Please check your token and try again.';
                 authMessage.className = 'auth-message error';
                 authMessage.style.display = 'block';
+                // Hide base selection on error
+                document.querySelector('.base-selection-container').style.display = 'none';
             }
+        }
+
+        // Move saveSelectedBase outside validateAirtableToken
+        async function saveSelectedBase() {
+            const baseSelect = document.getElementById('baseSelect');
+            const selectedBaseId = baseSelect.value;
+            const selectedBaseName = baseSelect.options[baseSelect.selectedIndex].text;
+            
+            // Here you would typically make an API call to save the selected base
+            console.log('Selected base:', {
+                id: selectedBaseId,
+                name: selectedBaseName
+            });
+
+            // Show confirmation to user
+            const authMessage = document.querySelector('.auth-message');
+            authMessage.innerHTML = `
+                <strong>Base selected successfully!</strong><br>
+                Using base: ${selectedBaseName}
+            `;
+            authMessage.className = 'auth-message success';
+            authMessage.style.display = 'block';
         }
     </script>
 </head>
