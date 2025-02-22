@@ -207,6 +207,41 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+
+        /* Add these new styles */
+        .base-selection-container {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+
+        .base-select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .save-base-button {
+            background-color: #132134;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .save-base-button:hover {
+            background-color: #1f3553;
+        }
     </style>
     <script>
         // Check if user is logged in (reuse from api-keys.html)
@@ -363,43 +398,60 @@
                 });
 
                 if (response.ok && result.success) {
-                    // Create success message with bases information
-                    const basesInfo = result.response?.bases
-                        .map(base => `• ${base.name} (${base.permissionLevel})`)
-                        .join('\n');
-                    
-                    authMessage.innerHTML = `
-                        <strong>Airtable connection successful!</strong><br>
-                        Connected bases:<br>
-                        ${basesInfo}
-                    `;
+                    // Create success message
+                    authMessage.innerHTML = `<strong>Airtable connection successful!</strong>`;
                     authMessage.className = 'auth-message success';
                     
                     // Update the select dropdown to keep airtable selected
                     document.getElementById('destinationSelect').value = 'airtable';
+
+                    // Populate and show base selection
+                    const baseSelect = document.getElementById('baseSelect');
+                    const baseSelectionContainer = document.querySelector('.base-selection-container');
+                    
+                    // Clear existing options
+                    baseSelect.innerHTML = '';
+                    
+                    // Add bases to dropdown
+                    result.response.bases.forEach(base => {
+                        const option = document.createElement('option');
+                        option.value = base.id;
+                        option.textContent = `${base.name} (${base.permissionLevel})`;
+                        baseSelect.appendChild(option);
+                    });
+
+                    // Show the base selection container
+                    baseSelectionContainer.style.display = 'block';
+                    
                 } else {
                     const errorMsg = result.message || result.error || 'Failed to connect to Airtable';
                     authMessage.textContent = errorMsg;
                     authMessage.className = 'auth-message error';
+                    // Hide base selection if auth failed
+                    document.querySelector('.base-selection-container').style.display = 'none';
                 }
-                authMessage.style.display = 'block';
 
-                const requestBody = {
-                    user: {
-                        email: userEmail
-                    },
-                    token: token,
-                    service_id: '21647ac6-b6a1-4431-a7b6-dd603ed587e3',
-                    airtable_token: airtableToken
-                };
+                // Add this new function to handle base selection
+                async function saveSelectedBase() {
+                    const baseSelect = document.getElementById('baseSelect');
+                    const selectedBaseId = baseSelect.value;
+                    const selectedBaseName = baseSelect.options[baseSelect.selectedIndex].text;
+                    
+                    // Here you would typically make an API call to save the selected base
+                    console.log('Selected base:', {
+                        id: selectedBaseId,
+                        name: selectedBaseName
+                    });
 
-                // Generate and log cURL command
-                const curlCommand = `curl -X POST \\
-  'https://api.mixed-marketing-actions.ovh/action/linkedin_to_airtable/auth' \\
-  -H 'Content-Type: application/json' \\
-  -H 'Accept: */*' \\
-  -d '${JSON.stringify(requestBody, null, 2)}'`;
-
+                    // Show confirmation to user
+                    const authMessage = document.querySelector('.auth-message');
+                    authMessage.innerHTML = `
+                        <strong>Base selected successfully!</strong><br>
+                        Using base: ${selectedBaseName}
+                    `;
+                    authMessage.className = 'auth-message success';
+                    authMessage.style.display = 'block';
+                }
             } catch (error) {
                 console.error('Error validating Airtable token:', error);
                 authMessage.textContent = 'An error occurred while validating the token. Please check your token and try again.';
@@ -455,6 +507,18 @@
                         Validate Connection
                     </button>
                     <div class="auth-message"></div>
+                </div>
+
+                <!-- Add the base selection container -->
+                <div class="base-selection-container">
+                    <h3>Select Airtable Base</h3>
+                    <p>Choose the base you want to use for storing profiles:</p>
+                    <select id="baseSelect" class="base-select">
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                    <button class="save-base-button" onclick="saveSelectedBase()">
+                        Save Base Selection
+                    </button>
                 </div>
             </div>
         </div>
