@@ -669,11 +669,12 @@
                     // Clear existing options
                     tableSelect.innerHTML = '';
                     
-                    // Add tables to dropdown with their field count
+                    // Add tables to dropdown
                     result.response.tables.forEach(table => {
                         const option = document.createElement('option');
                         option.value = JSON.stringify({
                             id: table.id,
+                            name: table.name,
                             fields: table.fields
                         });
                         option.textContent = `${table.name} (${table.fields.length} fields)`;
