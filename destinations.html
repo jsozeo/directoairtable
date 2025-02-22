@@ -242,6 +242,25 @@
         .save-base-button:hover {
             background-color: #1f3553;
         }
+
+        /* Add new style for table selection */
+        .table-selection-container {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+
+        .table-select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
     </style>
     <script>
         // Check if user is logged in (reuse from api-keys.html)
@@ -446,21 +465,89 @@
             const baseSelect = document.getElementById('baseSelect');
             const selectedBaseId = baseSelect.value;
             const selectedBaseName = baseSelect.options[baseSelect.selectedIndex].text;
+            const userEmail = localStorage.getItem('userEmail');
+            const token = localStorage.getItem('token');
             
-            // Here you would typically make an API call to save the selected base
-            console.log('Selected base:', {
-                id: selectedBaseId,
-                name: selectedBaseName
-            });
+            try {
+                const response = await fetch('https://api.mixed-marketing-actions.ovh/action/linkedin_to_airtable/get_table', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': '*/*'
+                    },
+                    body: JSON.stringify({
+                        baseId: selectedBaseId,
+                        user: {
+                            email: userEmail
+                        },
+                        token: token,
+                        service_id: '21647ac6-b6a1-4431-a7b6-dd603ed587e3'
+                    })
+                });
 
-            // Show confirmation to user
-            const authMessage = document.querySelector('.auth-message');
-            authMessage.innerHTML = `
-                <strong>Base selected successfully!</strong><br>
-                Using base: ${selectedBaseName}
-            `;
-            authMessage.className = 'auth-message success';
-            authMessage.style.display = 'block';
+                // Log the raw response details
+                console.log('Raw Tables Response:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: Object.fromEntries(response.headers.entries()),
+                    ok: response.ok
+                });
+
+                const result = await response.json();
+                console.log('Tables Response:', result);
+
+                if (response.ok && result.success) {
+                    // Show success message for base selection
+                    const authMessage = document.querySelector('.auth-message');
+                    authMessage.innerHTML = `
+                        <strong>Base selected successfully!</strong><br>
+                        Using base: ${selectedBaseName}
+                    `;
+                    authMessage.className = 'auth-message success';
+                    authMessage.style.display = 'block';
+
+                    // Populate and show table selection
+                    const tableSelect = document.getElementById('tableSelect');
+                    const tableSelectionContainer = document.querySelector('.table-selection-container');
+                    
+                    // Clear existing options
+                    tableSelect.innerHTML = '';
+                    
+                    // Add tables to dropdown
+                    result.tables.forEach(table => {
+                        const option = document.createElement('option');
+                        option.value = table.id;
+                        option.textContent = table.name;
+                        tableSelect.appendChild(option);
+                    });
+
+                    // Show the table selection container
+                    tableSelectionContainer.style.display = 'block';
+                } else {
+                    throw new Error(result.message || 'Failed to fetch tables');
+                }
+            } catch (error) {
+                console.error('Error fetching tables:', error);
+                const authMessage = document.querySelector('.auth-message');
+                authMessage.textContent = 'Failed to fetch tables. Please try again.';
+                authMessage.className = 'auth-message error';
+                authMessage.style.display = 'block';
+                document.querySelector('.table-selection-container').style.display = 'none';
+            }
+        }
+
+        // Placeholder for table selection handler
+        async function saveSelectedTable() {
+            const tableSelect = document.getElementById('tableSelect');
+            const selectedTableId = tableSelect.value;
+            const selectedTableName = tableSelect.options[tableSelect.selectedIndex].text;
+            
+            console.log('Selected table:', {
+                id: selectedTableId,
+                name: selectedTableName
+            });
+            
+            // We'll implement the actual save logic when you provide the next step
         }
     </script>
 </head>
@@ -521,6 +608,18 @@
                     </select>
                     <button class="save-base-button" onclick="saveSelectedBase()">
                         Save Base Selection
+                    </button>
+                </div>
+
+                <!-- Add the table selection container -->
+                <div class="table-selection-container">
+                    <h3>Select Airtable Table</h3>
+                    <p>Choose the table where you want to store the profiles:</p>
+                    <select id="tableSelect" class="table-select">
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                    <button class="save-base-button" onclick="saveSelectedTable()">
+                        Save Table Selection
                     </button>
                 </div>
             </div>
