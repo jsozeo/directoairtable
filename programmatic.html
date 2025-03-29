@@ -461,7 +461,7 @@
                 
                 generateCurl(tool) {
                     return `curl --location 'https://api.precrm.fr/action/${tool.slug}' \\
---header 'x-api-key: ${this.userApiKey} \\
+--header 'x-api-key: ${this.userApiKey}' \\
 --header 'Content-Type: application/json' \\
 --data '{
     "inputs":["<your array of inputs>"],
