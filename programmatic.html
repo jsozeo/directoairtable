@@ -283,22 +283,62 @@
                 isLoading: true,
                 hasError: false,
                 errorMessage: '',
+                userApiKey: '<your api key>',
                 
-                init() {
-                    // Initialize clipboard.js
-                    this.clipboard = new ClipboardJS('button[data-clipboard-text]');
-                    this.clipboard.on('success', (e) => {
-                        e.clearSelection();
-                        this.showToast = true;
-                        this.toastMessage = `${e.trigger.textContent.trim()} configuration copied!`;
-                        
-                        setTimeout(() => {
-                            this.showToast = false;
-                        }, 3000);
-                    });
+                async init() {
+                    const userEmail = localStorage.getItem('userEmail');
+                    const token = localStorage.getItem('token');
                     
-                    // Load data from S3
-                    this.loadToolsData();
+                    if (!userEmail || !token) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    
+                    try {
+                        const verifyResponse = await fetch('https://api.mixed-marketing-actions.ovh/verify', {
+                            method: 'POST',
+                            headers: {
+                                'x-api-key': 'mV3xihTh7m9ypwEAvrsxmWDwghb52jD5nQfotH44', 
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                service_id: '21647ac6-b6a1-4431-a7b6-dd603ed587e3',
+                                user: {
+                                    email: userEmail
+                                },
+                                token
+                            })
+                        });
+                        
+                        if (!verifyResponse.ok) {
+                            window.location.href = 'login.html';
+                            return;
+                        }
+                        
+                        const verifyData = await verifyResponse.json();
+                        
+                        if (!verifyData.verified) {
+                            window.location.href = 'login.html';
+                            return;
+                        }
+                        
+                        this.clipboard = new ClipboardJS('button[data-clipboard-text]');
+                        this.clipboard.on('success', (e) => {
+                            e.clearSelection();
+                            this.showToast = true;
+                            this.toastMessage = `${e.trigger.textContent.trim()} configuration copied!`;
+                            
+                            setTimeout(() => {
+                                this.showToast = false;
+                            }, 3000);
+                        });
+                        
+                        await this.loadToolsData();
+                        
+                    } catch (error) {
+                        console.error('Error verifying user:', error);
+                        window.location.href = 'login.html';
+                    }
                 },
                 
                 async loadToolsData() {
@@ -306,7 +346,6 @@
                     this.hasError = false;
                     
                     try {
-                        // Fetch data from S3 bucket
                         const response = await fetch('https://com-precrm-data-public.s3.eu-west-3.amazonaws.com/verifications.json');
                         
                         if (!response.ok) {
@@ -315,10 +354,8 @@
                         
                         const jsonData = await response.json();
                         
-                        // Process the JSON data into tools format
                         const tools = this.processJsonData(jsonData);
                         
-                        // Update UI with tools data
                         this.processToolsData(tools);
                     } catch (error) {
                         console.error('Error loading tools data:', error);
@@ -329,25 +366,18 @@
                 },
                 
                 processJsonData(jsonData) {
-                    // Extract tools from the JSON structure
                     const tools = [];
                     
-                    // Process all objects in the array
                     for (const item of jsonData) {
-                        // Each item has a single key which is the slug
-                        // The slug could be "*" for wildcard
                         const slug = Object.keys(item)[0];
                         
                         if (slug === "*") {
-                            // Skip wildcard for display purposes
                             continue;
                         }
                         
-                        // Get the 'in' items which contain the metadata
                         const inItems = item[slug].in || [];
                         
                         if (inItems.length > 0) {
-                            // Use the first 'in' item for metadata (platform and object)
                             const firstItem = inItems[0];
                             
                             tools.push({
@@ -370,7 +400,6 @@
                     this.filteredTools = [...tools];
                     this.displayedTools = [...tools];
                     
-                    // Extract unique platforms and objects
                     this.platforms = [...new Set(tools.map(tool => tool.platform))].sort();
                     this.objects = [...new Set(tools.map(tool => tool.object))].sort();
                     
@@ -379,7 +408,6 @@
                 },
                 
                 filterTools() {
-                    // If "all" is selected and no specific filters, show all tools
                     if (this.currentFilter === 'all' && this.selectedPlatforms.length === 0 && this.selectedObjects.length === 0) {
                         this.filteredTools = [...this.allTools];
                         this.displayedTools = [...this.allTools];
@@ -433,7 +461,7 @@
                 
                 generateCurl(tool) {
                     return `curl --location 'https://api.precrm.fr/action/${tool.slug}' \\
---header 'x-api-key: <your api key>' \\
+--header 'x-api-key: ${this.userApiKey} \\
 --header 'Content-Type: application/json' \\
 --data '{
     "inputs":["<your array of inputs>"],
@@ -443,7 +471,6 @@
                 },
                 
                 generateN8n(tool) {
-                    // Use the template and replace the slug placeholders
                     const n8nTemplate = {
                       "meta": {
                         "templateCredsSetupCompleted": true,
@@ -490,7 +517,7 @@
                               "parameters": [
                                 {
                                   "name": "x-api-key",
-                                  "value": "<your api key>"
+                                  "value": "${this.userApiKey}"
                                 }
                               ]
                             },
