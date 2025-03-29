@@ -288,6 +288,7 @@
                 async init() {
                     const userEmail = localStorage.getItem('userEmail');
                     const token = localStorage.getItem('token');
+                    const storedApiKey = localStorage.getItem('apiKey');
                     
                     if (!userEmail || !token) {
                         window.location.href = 'login.html';
@@ -320,6 +321,12 @@
                         if (!verifyData.verified) {
                             window.location.href = 'login.html';
                             return;
+                        }
+                        
+                        // Use the API key from localStorage if it exists
+                        if (storedApiKey) {
+                            this.userApiKey = storedApiKey;
+                            console.log("Using API key from localStorage:", this.userApiKey);
                         }
                         
                         this.clipboard = new ClipboardJS('button[data-clipboard-text]');
@@ -471,6 +478,7 @@
                 },
                 
                 generateN8n(tool) {
+                    // Create a mutable template object
                     const n8nTemplate = {
                       "meta": {
                         "templateCredsSetupCompleted": true,
@@ -495,7 +503,7 @@
                         },
                         {
                           "parameters": {
-                            "content": `## ${tool.slug} \n**Update your x-api-key and array of input in request body**`,
+                            "content": `## ${tool.slug} \n**Update your array of input in request body**`,
                             "height": 331,
                             "width": 451
                           },
@@ -517,7 +525,7 @@
                               "parameters": [
                                 {
                                   "name": "x-api-key",
-                                  "value": this.userApiKey
+                                  "value": this.userApiKey === '<your api key>' ? '<your api key>' : this.userApiKey
                                 }
                               ]
                             },
@@ -552,7 +560,15 @@
                       "pinData": {}
                     };
                     
-                    return JSON.stringify(n8nTemplate, null, 2);
+                    // First convert to string
+                    let jsonString = JSON.stringify(n8nTemplate, null, 2);
+                    
+                    // Then replace the placeholder with the actual value if available
+                    if (this.userApiKey !== '<your api key>') {
+                        jsonString = jsonString.replace('"value": "<your api key>"', `"value": "${this.userApiKey}"`);
+                    }
+                    
+                    return jsonString;
                 }
             };
         }
