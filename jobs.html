@@ -187,13 +187,13 @@
 
         // Define field mapping from UI to dynamoDB names based on verifications.json
         const fieldMapping = {
-            title: 'Title',
-            company: 'companyName',
-            location: 'jobLocation',
-            type: 'workplaceType',
-            status: 'jobState',
-            description: 'jobDescription',
-            requirements: 'jobFunctions'
+            title: 'jobTitle',            // Changed from 'Title' to 'jobTitle'
+            company: 'companyName',       // Correct
+            location: 'jobLocation',      // Correct
+            type: 'jobType',              // Changed from 'workplaceType' to 'jobType'
+            status: 'jobState',           // Correct
+            description: 'jobDescription', // Correct
+            requirements: 'jobFunctions'  // Correct
         };
 
         async function loadJobs() {
@@ -204,10 +204,15 @@
                         'x-api-key': apiKey
                     }
                 });
+                
+                console.log('Response status:', response.status);
                 const data = await response.json();
+                console.log('Raw response data:', data);
                 
                 // Check if response has an items array and use it, otherwise use the response directly
                 const jobs = data.items || data;
+                console.log('Jobs to display:', jobs);
+                
                 displayJobs(jobs);
             } catch (error) {
                 console.error('Error loading jobs:', error);
@@ -217,23 +222,35 @@
 
         function displayJobs(jobs) {
             const tableBody = document.getElementById('jobsTable');
+            console.log('Display jobs called with:', jobs);
             
             if (!jobs || !Array.isArray(jobs) || jobs.length === 0) {
+                console.log('No jobs found or jobs is not an array');
                 tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No jobs found</td></tr>';
                 return;
             }
             
             tableBody.innerHTML = jobs.map(job => {
-                // Make sure we have an id, or use a fallback
-                const jobId = job.id || job.jobId || job.SK || '';
+                // Extract job ID from various possible fields
+                // Since we saw jobId in the example, try that first, then other possibilities
+                const jobId = job.jobId || job.id || job.SK || '';
+                
+                // Extract job fields with fallbacks
+                const title = job[fieldMapping.title] || '';
+                const company = job[fieldMapping.company] || '';
+                const location = job[fieldMapping.location] || '';
+                const type = job[fieldMapping.type] || '';
+                const status = job[fieldMapping.status] || '';
+                
+                console.log(`Row data: ID=${jobId}, Title=${title}, Company=${company}`);
                 
                 return `
                 <tr class="company-row" onclick="openDetailPanel('${jobId}')">
-                    <td>${job[fieldMapping.title] || ''}</td>
-                    <td>${job[fieldMapping.company] || ''}</td>
-                    <td>${job[fieldMapping.location] || ''}</td>
-                    <td>${job[fieldMapping.type] || ''}</td>
-                    <td>${job[fieldMapping.status] || ''}</td>
+                    <td>${title}</td>
+                    <td>${company}</td>
+                    <td>${location}</td>
+                    <td>${type}</td>
+                    <td>${status}</td>
                 </tr>
             `}).join('');
         }
@@ -255,6 +272,7 @@
         }
 
         async function loadJobDetails(id) {
+            console.log('Loading details for job ID:', id);
             try {
                 const apiKey = localStorage.getItem('apiKey');
                 const response = await fetch(`${BASE_URL}/job/${id}`, {
@@ -262,10 +280,13 @@
                         'x-api-key': apiKey
                     }
                 });
+                console.log('Job details response status:', response.status);
                 const data = await response.json();
+                console.log('Raw job details data:', data);
                 
                 // Check if response has an items array and use the first item, otherwise use the response directly
                 const job = data.items ? data.items[0] : data;
+                console.log('Job data to use for form:', job);
                 
                 populateJobForm(job);
             } catch (error) {
@@ -275,13 +296,31 @@
         }
 
         function populateJobForm(job) {
-            document.getElementById('jobTitle').value = job[fieldMapping.title] || '';
-            document.getElementById('company').value = job[fieldMapping.company] || '';
-            document.getElementById('location').value = job[fieldMapping.location] || '';
-            document.getElementById('jobType').value = job[fieldMapping.type] || '';
-            document.getElementById('status').value = job[fieldMapping.status] || '';
-            document.getElementById('description').value = job[fieldMapping.description] || '';
-            document.getElementById('requirements').value = job[fieldMapping.requirements] || '';
+            console.log('Populating form with job data:', job);
+            console.log('Field mapping for form:', fieldMapping);
+            
+            // Extract job fields with fallbacks
+            const title = job[fieldMapping.title] || '';
+            const company = job[fieldMapping.company] || '';
+            const location = job[fieldMapping.location] || '';
+            const type = job[fieldMapping.type] || '';
+            const status = job[fieldMapping.status] || '';
+            const description = job[fieldMapping.description] || '';
+            const requirements = job[fieldMapping.requirements] || '';
+            
+            console.log('Form field values:', {
+                title, company, location, type, status, description, requirements
+            });
+            
+            document.getElementById('jobTitle').value = title;
+            document.getElementById('company').value = company;
+            document.getElementById('location').value = location;
+            document.getElementById('jobType').value = type;
+            document.getElementById('status').value = status;
+            document.getElementById('description').value = description;
+            document.getElementById('requirements').value = requirements;
+            
+            console.log('Form populated successfully');
         }
 
         async function saveJob() {
@@ -317,6 +356,8 @@
                     },
                     body: JSON.stringify(jobData)
                 });
+                
+                console.log('Save response status:', response.status);
                 
                 if (response.ok) {
                     alert(currentJobId ? 'Job updated successfully' : 'Job created successfully');
