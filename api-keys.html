@@ -334,6 +334,13 @@
             // Redirect to homepage
             window.location.href = '/';
         }
+
+        function handlePurchaseClick() {
+            const email = localStorage.getItem('userEmail');
+            const url = `https://buy.stripe.com/bIY9Cr6gV7HpdDa6oA?prefilled_email=${encodeURIComponent(email)}`;
+            window.open(url, '_blank').focus();
+            return false; // Prevent default action
+        }
     </script>
 </head>
 <body class="bg-white flex h-screen">
@@ -418,14 +425,7 @@
 
                 <div class="alert">
                     You don't have an active subscription. 
-                    <a href="#" onclick="handlePurchaseClick()" target="_blank">Purchase a subscription</a>
-                    <script>
-                        function handlePurchaseClick() {
-                            const email = localStorage.getItem('userEmail');
-                            const url = `https://buy.stripe.com/bIY9Cr6gV7HpdDa6oA?prefilled_email=${encodeURIComponent(email)}`;
-                            window.open(url, '_blank');
-                        }
-                    </script>
+                    <a href="javascript:void(0);" onclick="handlePurchaseClick(); return false;">Purchase a subscription</a>
                 </div>
 
                 <div class="w-full overflow-x-auto">
