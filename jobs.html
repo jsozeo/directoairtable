@@ -231,28 +231,32 @@
             }
             
             tableBody.innerHTML = jobs.map(job => {
-                // Extract job ID from various possible fields
-                // Since we saw jobId in the example, try that first, then other possibilities
                 const jobId = job.jobId || job.id || job.SK || '';
-                
-                // Extract job fields with fallbacks
                 const title = job[fieldMapping.title] || '';
                 const company = job[fieldMapping.company] || '';
                 const location = job[fieldMapping.location] || '';
                 const type = job[fieldMapping.type] || '';
                 const status = job[fieldMapping.status] || '';
                 
-                console.log(`Row data: ID=${jobId}, Title=${title}, Company=${company}`);
-                
                 return `
-                <tr class="company-row" onclick="openDetailPanel('${jobId}')">
-                    <td>${title}</td>
-                    <td>${company}</td>
-                    <td>${location}</td>
-                    <td>${type}</td>
-                    <td>${status}</td>
-                </tr>
-            `}).join('');
+                    <tr class="company-row" data-job-id="${jobId}">
+                        <td>${title}</td>
+                        <td>${company}</td>
+                        <td>${location}</td>
+                        <td>${type}</td>
+                        <td>${status}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Add click event listeners to rows
+            document.querySelectorAll('.company-row').forEach(row => {
+                row.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const jobId = row.getAttribute('data-job-id');
+                    openDetailPanel(jobId);
+                });
+            });
         }
 
         function openDetailPanel(id) {
@@ -398,13 +402,23 @@
             saveJob();
         });
 
-        // Add click outside handler
+        // Update the click outside handler
         document.addEventListener('click', function(event) {
             const detailPanel = document.getElementById('detailPanel');
-            const isClickInside = detailPanel.contains(event.target);
-            const isOpen = detailPanel.classList.contains('open');
+            const addJobButton = event.target.closest('.btn-primary');
             
-            if (isOpen && !isClickInside && !event.target.matches('.company-row, .btn-primary')) {
+            // If clicking the add job button, don't close the panel
+            if (addJobButton) {
+                return;
+            }
+
+            // If clicking inside the panel, don't close it
+            if (event.target.closest('.detail-panel')) {
+                return;
+            }
+
+            // If the panel is open and we clicked outside, close it
+            if (detailPanel.classList.contains('open')) {
                 closeDetailPanel();
             }
         });
