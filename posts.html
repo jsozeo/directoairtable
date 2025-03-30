@@ -19,8 +19,10 @@
             width: 200px;
         }
         .main-content {
-            margin-left: 200px;
+            margin-left: 192px;
             padding: 20px;
+            width: calc(100% - 192px);
+            max-width: none !important;
         }
         .company-row {
             cursor: pointer;
@@ -48,6 +50,12 @@
             right: 20px;
             top: 20px;
             cursor: pointer;
+        }
+        .table-responsive {
+            width: 100%;
+        }
+        .table {
+            width: 100% !important;
         }
     </style>
 </head>
@@ -125,26 +133,28 @@
 
     <!-- Main Content -->
     <div class="main-content">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Posts</h2>
-            <button class="btn btn-primary" onclick="openCreateForm()">Add Post</button>
-        </div>
-        
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Author</th>
-                        <th>Category</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="postsTable">
-                    <!-- Posts will be loaded here -->
-                </tbody>
-            </table>
+        <div class="w-full">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Posts</h2>
+                <button class="btn btn-primary" onclick="openCreateForm()">Add Post</button>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Category</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="postsTable">
+                        <!-- Posts will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
