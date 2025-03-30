@@ -7,6 +7,8 @@
     <link href="./Extract Profiles to Airtable_files/chrome-extension-prop2.webflow.b67937007.css" rel="stylesheet" type="text/css">
     <link href="./Extract Profiles to Airtable_files/666b4ed93e72317ff3029989_Direct to Airtable.png" rel="shortcut icon" type="image/x-icon">
     <link href="./Extract Profiles to Airtable_files/666b4ed93e72317ff3029989_Direct to Airtable.png" rel="apple-touch-icon">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.5.0/dist/full.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Dashboard Layout */
         .dashboard {
@@ -70,9 +72,9 @@
         
         /* Main Content */
         .main-content {
-            flex: 1;
-            padding: 30px;
-            background-color: #f8f9fa;
+            padding: 20px;
+            width: calc(100% - 192px);
+            max-width: none !important;
         }
         
         /* Header */
@@ -339,7 +341,7 @@
     <nav class="flex-1 p-4">
         <ul class="space-y-6">
             <li>
-                <a href="/api-keys.html" class="flex items-center text-gray-300 hover:text-white">
+                <a href="/api-keys.html" class="flex items-center text-white font-bold">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                     </svg>
@@ -400,51 +402,47 @@
 
         <!-- Main Content -->
         <div class="main-content">
-            <div class="content-header">
-                <h1>API Keys</h1>
-            </div>
+            <div class="w-full">
+                <div class="content-header">
+                    <h1>API Keys</h1>
+                </div>
 
-            <div class="alert">
-                You don't have an active subscription. 
-                <a href="#" onclick="handlePurchaseClick()" target="_blank">Purchase a subscription</a>
-                <script>
-                    function handlePurchaseClick() {
-                        const email = localStorage.getItem('userEmail');
-                        const url = `https://buy.stripe.com/bIY9Cr6gV7HpdDa6oA?prefilled_email=${encodeURIComponent(email)}`;
-                        window.open(url, '_blank');
-                    }
-                    function handleLogout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('apiKey');
-    localStorage.removeItem('userEmail');
-    window.location.href = '/';
-}
-                </script>
-            </div>
+                <div class="alert">
+                    You don't have an active subscription. 
+                    <a href="#" onclick="handlePurchaseClick()" target="_blank">Purchase a subscription</a>
+                    <script>
+                        function handlePurchaseClick() {
+                            const email = localStorage.getItem('userEmail');
+                            const url = `https://buy.stripe.com/bIY9Cr6gV7HpdDa6oA?prefilled_email=${encodeURIComponent(email)}`;
+                            window.open(url, '_blank');
+                        }
+                    </script>
+                </div>
 
-            <table class="api-keys-table">
-                <thead>
-                    <tr>
-                        <th>Email</th>
-                        <th>Name</th>
-                        <th>API Key</th>
-                        <th>Plan Type</th>
-                        <th>Credits</th>
-                        <th>Last Reset</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Data will be dynamically inserted here -->
-                </tbody>
-            </table>
+                <table class="api-keys-table">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Name</th>
+                            <th>API Key</th>
+                            <th>Plan Type</th>
+                            <th>Credits</th>
+                            <th>Last Reset</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be dynamically inserted here -->
+                    </tbody>
+                </table>
 
-            <!-- Add the new billing portal block -->
-            <div class="billing-portal-block" onclick="window.open('https://billing.stripe.com/p/login/dR66pB8ut1sveZicMM', '_blank')">
-                <div class="portal-content">
-                    <svg class="portal-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M10 6H6C4.89543 6 4 6.89543 4 8V18C4 19.1046 4.89543 20 6 20H16C17.1046 20 18 19.1046 18 18V14M14 4H20M20 4V10M20 4L10 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <span>Open Billing Portal</span>
+                <!-- Add the new billing portal block -->
+                <div class="billing-portal-block" onclick="window.open('https://billing.stripe.com/p/login/dR66pB8ut1sveZicMM', '_blank')">
+                    <div class="portal-content">
+                        <svg class="portal-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 6H6C4.89543 6 4 6.89543 4 8V18C4 19.1046 4.89543 20 6 20H16C17.1046 20 18 19.1046 18 18V14M14 4H20M20 4V10M20 4L10 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Open Billing Portal</span>
+                    </div>
                 </div>
             </div>
         </div>
