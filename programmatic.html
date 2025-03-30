@@ -572,6 +572,13 @@
                 }
             };
         }
+
+        function handleLogout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('apiKey');
+            localStorage.removeItem('userEmail');
+            window.location.href = '/';
+        }
     </script>
 </body>
 </html>

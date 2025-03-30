@@ -49,17 +49,77 @@
         }
     </style>
 </head>
-<body>
-    <!-- Sidebar -->
-    <div class="sidebar p-3">
-        <h3 class="mb-4">PreCRM</h3>
-        <div class="nav flex-column">
-            <a href="api-keys.html" class="nav-link text-white">APIs</a>
-            <a href="destinations.html" class="nav-link text-white">Destinations</a>
-            <a href="jobs.html" class="nav-link text-white">Jobs</a>
-            <a href="programmatic.html" class="nav-link text-white">Programmatic</a>
-        </div>
+<body class="bg-white flex h-screen">
+<!-- Left sidebar menu -->
+<div class="w-48 bg-[#0F1A2C] text-white flex flex-col">
+    <div class="p-4 border-b border-gray-700">
+        <a href="/" class="flex items-center">
+            <div class="bg-red-600 w-8 h-8 mr-2"></div>
+            <span class="text-2xl font-bold">preCRM</span>
+        </a>
     </div>
+    
+    <nav class="flex-1 p-4">
+        <ul class="space-y-6">
+            <li>
+                <a href="/api-keys.html" class="flex items-center text-gray-300 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    </svg>
+                    API Keys
+                </a>
+            </li>
+            <li>
+                <a href="/destinations.html" class="flex items-center text-gray-300 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Destinations
+                </a>
+            </li>
+            <li>
+                <a href="/jobs.html" class="flex items-center text-gray-300 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Your jobs
+                </a>
+            </li>
+            <li>
+                <a href="/contacts.html" class="flex items-center text-gray-300 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Your contacts
+                </a>
+            </li>
+            <li>
+                <a href="/posts.html" class="flex items-center text-gray-300 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15" />
+                    </svg>
+                    Your posts
+                </a>
+            </li>
+            <li>
+                <a href="/programmatic.html" class="flex items-center text-gray-300 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Programmatic
+                </a>
+            </li>
+        </ul>
+    </nav>
+    
+    <div class="mt-auto p-4">
+        <button onclick="handleLogout()" class="btn btn-circle btn-sm btn-ghost text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+        </button>
+    </div>
+</div>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -105,20 +165,11 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">Type</label>
-                <select class="form-control" id="jobType">
-                    <option value="full-time">Full-time</option>
-                    <option value="part-time">Part-time</option>
-                    <option value="contract">Contract</option>
-                    <option value="internship">Internship</option>
-                </select>
+                <input type="text" class="form-control" id="jobType">
             </div>
             <div class="mb-3">
                 <label class="form-label">Status</label>
-                <select class="form-control" id="status">
-                    <option value="open">Open</option>
-                    <option value="closed">Closed</option>
-                    <option value="draft">Draft</option>
-                </select>
+                <input type="text" class="form-control" id="status">
             </div>
             <div class="mb-3">
                 <label class="form-label">Description</label>
@@ -422,6 +473,12 @@
                 closeDetailPanel();
             }
         });
+        function handleLogout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('apiKey');
+            localStorage.removeItem('userEmail');
+            window.location.href = '/';
+        }
     </script>
 </body>
 </html> 
