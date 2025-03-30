@@ -13,7 +13,7 @@
         /* Dashboard Layout */
         .dashboard {
             display: flex;
-            min-height: 100vh;
+            width: 100%;
         }
         
         /* Sidebar */
@@ -72,9 +72,17 @@
         
         /* Main Content */
         .main-content {
+            flex: 1;
             padding: 20px;
             width: calc(100% - 192px);
+            margin-left: 192px;
             max-width: none !important;
+        }
+        
+        /* Ensure the w-full div takes full width */
+        .main-content .w-full {
+            width: 100%;
+            max-width: none;
         }
         
         /* Header */
@@ -95,10 +103,11 @@
         
         /* API Keys Table */
         .api-keys-table {
-            width: 100%;
+            width: 100% !important;
             background: white;
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
         
         .api-keys-table th,
@@ -106,6 +115,7 @@
             padding: 15px;
             text-align: left;
             border-bottom: 1px solid #eee;
+            white-space: nowrap;
         }
         
         .api-keys-table th {
@@ -419,21 +429,23 @@
                     </script>
                 </div>
 
-                <table class="api-keys-table">
-                    <thead>
-                        <tr>
-                            <th>Email</th>
-                            <th>Name</th>
-                            <th>API Key</th>
-                            <th>Plan Type</th>
-                            <th>Credits</th>
-                            <th>Last Reset</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Data will be dynamically inserted here -->
-                    </tbody>
-                </table>
+                <div class="w-full overflow-x-auto">
+                    <table class="api-keys-table">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Name</th>
+                                <th>API Key</th>
+                                <th>Plan Type</th>
+                                <th>Credits</th>
+                                <th>Last Reset</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be dynamically inserted here -->
+                        </tbody>
+                    </table>
+                </div>
 
                 <!-- Add the new billing portal block -->
                 <div class="billing-portal-block" onclick="window.open('https://billing.stripe.com/p/login/dR66pB8ut1sveZicMM', '_blank')">
