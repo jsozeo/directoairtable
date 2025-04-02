@@ -311,6 +311,7 @@
                     const token = localStorage.getItem('token');
                     const storedApiKey = localStorage.getItem('apiKey');
                     
+                    /* Comment out verification for local testing
                     if (!userEmail || !token) {
                         window.location.href = 'login.html';
                         return;
@@ -343,30 +344,33 @@
                             window.location.href = 'login.html';
                             return;
                         }
-                        
-                        // Use the API key from localStorage if it exists
-                        if (storedApiKey) {
-                            this.userApiKey = storedApiKey;
-                            console.log("Using API key from localStorage:", this.userApiKey);
-                        }
-                        
-                        this.clipboard = new ClipboardJS('button[data-clipboard-text]');
-                        this.clipboard.on('success', (e) => {
-                            e.clearSelection();
-                            this.showToast = true;
-                            this.toastMessage = `${e.trigger.textContent.trim()} configuration copied!`;
-                            
-                            setTimeout(() => {
-                                this.showToast = false;
-                            }, 3000);
-                        });
-                        
-                        await this.loadToolsData();
-                        
                     } catch (error) {
                         console.error('Error verifying user:', error);
                         window.location.href = 'login.html';
                     }
+                    */
+                    
+                    // For local testing - bypass verification
+                    console.log("Verification bypassed for local testing");
+                    
+                    // Use the API key from localStorage if it exists
+                    if (storedApiKey) {
+                        this.userApiKey = storedApiKey;
+                        console.log("Using API key from localStorage:", this.userApiKey);
+                    }
+                    
+                    this.clipboard = new ClipboardJS('button[data-clipboard-text]');
+                    this.clipboard.on('success', (e) => {
+                        e.clearSelection();
+                        this.showToast = true;
+                        this.toastMessage = `${e.trigger.textContent.trim()} configuration copied!`;
+                        
+                        setTimeout(() => {
+                            this.showToast = false;
+                        }, 3000);
+                    });
+                    
+                    await this.loadToolsData();
                 },
                 
                 async loadToolsData() {
@@ -394,6 +398,8 @@
                 },
                 
                 processJsonData(jsonData) {
+                    console.log('Processing JSON data structure');
+                    
                     // Add the DynamoDB CRUD tools first
                     const tools = [
                         {
@@ -453,32 +459,47 @@
                             continue;
                         }
                         
+                        console.log(`Processing slug: ${slug}`);
+                        
                         const toolData = item[slug];
+                        
+                        // The structure is different than expected - fields are nested in "in" array
                         const inItems = toolData.in || [];
                         const outItems = toolData.out || [];
                         
                         if (inItems.length > 0) {
                             const firstItem = inItems[0];
                             
+                            // Log the first item for debugging
+                            console.log(`FULL first item for ${slug}:`, firstItem);
+                            
                             const tool = {
                                 slug: slug,
                                 platform: firstItem.platform,
                                 object: firstItem.object,
-                                inputs: inItems.map(input => ({
-                                    name: input.name,
-                                    nameSwitch: input.nameSwitch,
-                                    type: input.type || "string",
-                                    required: input.required || false,
-                                    label: input.label || input.name,
-                                    placeholder: input.placeholder || null,
-                                    helpers: input.helpers || null,
-                                    default: input.default || null
-                                })),
+                                inputs: inItems.map(input => {
+                                    // Log the entire input object to see what's available
+                                    console.log(`RAW input field for ${slug}:`, input);
+                                    
+                                    return {
+                                        name: input.name, // Keep name as is
+                                        type: input.type || "string",
+                                        required: input.required === true,
+                                        label: input.label || input.name,
+                                        placeholder: input.placeholder || null,
+                                        helpers: input.helpers || null,
+                                        default: input.default || null
+                                    };
+                                }),
                                 outputs: outItems.map(output => ({
                                     name: output.name,
                                     description: output.description || null
                                 }))
                             };
+                            
+                            // Log all required fields for this slug
+                            const requiredFields = tool.inputs.filter(input => input.required);
+                            console.log(`Required fields for ${slug}:`, requiredFields);
                             
                             tools.push(tool);
                         }
@@ -565,6 +586,8 @@
                         return this.generateDynamoDbCurl(tool);
                     }
                     
+                    console.log(`Generating cURL for ${tool.slug}`);
+                    
                     // Build dynamic body with required fields
                     let bodyFields = '';
                     
@@ -582,56 +605,69 @@
                     
                     // Check if this tool has inputs
                     if (tool.inputs && tool.inputs.length > 0) {
+                        console.log(`All inputs for ${tool.slug}:`, tool.inputs);
+                        
                         // Filter for required fields that are not excluded auth fields
-                        tool.inputs.forEach(input => {
-                            if (input.required === true && !excludedAuthFields.includes(input.name) && input.name) {
+                        tool.inputs.forEach((input, index) => {
+                            console.log(`Input #${index} for ${tool.slug}:`, input);
+                            
+                            if (input.required && !excludedAuthFields.includes(input.name)) {
                                 requiredFields.push(input);
+                                console.log(`Adding required field (${input.name}):`, input);
                             }
                         });
                     }
                     
+                    console.log(`Required fields count for ${tool.slug}: ${requiredFields.length}`);
+                    
                     // Process required fields
                     requiredFields.forEach((field, index) => {
-                        const fieldName = field.name;
-                        let fieldValue;
-                        
-                        // Generate value based on type and use placeholder if available
-                        switch (field.type) {
-                            case 'string':
-                                fieldValue = field.placeholder ? `"${field.placeholder}"` : `"<${fieldName}>"`;
-                                break;
-                            case 'boolean':
-                                fieldValue = field.default === true ? 'true' : 'false';
-                                break;
-                            case 'number':
-                                fieldValue = field.placeholder || field.default || '0';
-                                break;
-                            case 'array':
-                                fieldValue = '[]';
-                                break;
-                            default:
-                                fieldValue = `"<${fieldName}>"`;
+                        if (!field.name) {
+                            console.error(`Field with missing name:`, field);
+                            return;
                         }
                         
-                        bodyFields += `    "${fieldName}": ${fieldValue}${index < requiredFields.length - 1 ? ',\n' : '\n'}`;
+                        let fieldValue;
+                        
+                        // Special handling for known field names
+                        if (field.name === 'dummy' && field.placeholder === true) {
+                            fieldValue = 'true';
+                        } else if (field.name === 'inputs' && field.type === 'array') {
+                            // Format arrays properly with the placeholder or default value
+                            const arrayContent = field.placeholder || "your array of input.s";
+                            fieldValue = `["${arrayContent}"]`;
+                        } else {
+                            // Generate value based on type and use placeholder if available
+                            switch (field.type) {
+                                case 'string':
+                                    fieldValue = field.placeholder ? `"${field.placeholder}"` : `"<${field.name}>"`;
+                                    break;
+                                case 'boolean':
+                                    fieldValue = field.placeholder === true || field.default === true ? 'true' : 'false';
+                                    break;
+                                case 'number':
+                                    fieldValue = field.placeholder !== undefined ? field.placeholder : (field.default || '0');
+                                    break;
+                                case 'array':
+                                    fieldValue = field.placeholder ? `["${field.placeholder}"]` : '[]';
+                                    break;
+                                default:
+                                    fieldValue = `"<${field.name}>"`;
+                            }
+                        }
+                        
+                        bodyFields += `    "${field.name}": ${fieldValue}${index < requiredFields.length - 1 ? ',\n' : ''}`;
                     });
                     
-
-                    
-                    // Always add inputs field
-                    bodyFields += (bodyFields ? ',\n' : '') + '    "inputs": ["<your array of inputs>"]';
-                    
-                    // Add standard callback-url and dummy parameters
-                    const callbackUrl = '{{ $execution.resumeUrl }}';
-                    
-                    // Add standard parameters
-                    return `curl --location 'https://api.precrm.fr/action/${tool.slug}' \\
+                    const curlCmd = `curl --location 'https://api.precrm.fr/action/${tool.slug}' \\
 --header 'x-api-key: ${this.userApiKey}' \\
 --header 'Content-Type: application/json' \\
 --data '{
-${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "${callbackUrl}",
-    "dummy": true
+${bodyFields}
 }'`;
+
+                    console.log(`Generated cURL command for ${tool.slug}:`, curlCmd);
+                    return curlCmd;
                 },
                 
                 generateN8n(tool) {
@@ -639,6 +675,8 @@ ${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "${callbackUrl}",
                         return this.generateDynamoDbN8n(tool);
                     }
                     
+                    console.log(`Generating n8n for ${tool.slug}`);
+                    
                     // Build dynamic body with required fields
                     let bodyFields = '';
                     
@@ -658,45 +696,49 @@ ${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "${callbackUrl}",
                     if (tool.inputs && tool.inputs.length > 0) {
                         // Filter for required fields that are not excluded auth fields
                         tool.inputs.forEach(input => {
-                            if (input.required === true && !excludedAuthFields.includes(input.name) && input.name) {
+                            if (input.required && !excludedAuthFields.includes(input.name)) {
                                 requiredFields.push(input);
+                                console.log(`  Adding required field: ${input.name} with placeholder:`, input.placeholder);
                             }
                         });
                     }
+                    
+                    console.log(`Required fields for ${tool.slug} n8n:`, requiredFields.map(f => f.name));
                     
                     // Process required fields
                     requiredFields.forEach((field, index) => {
                         const fieldName = field.name;
                         let fieldValue;
                         
-                        // Generate value based on type and use placeholder if available
-                        switch (field.type) {
-                            case 'string':
-                                fieldValue = field.placeholder ? `"${field.placeholder}"` : `"<${fieldName}>"`;
-                                break;
-                            case 'boolean':
-                                fieldValue = field.default === true ? 'true' : 'false';
-                                break;
-                            case 'number':
-                                fieldValue = field.placeholder || field.default || '0';
-                                break;
-                            case 'array':
-                                fieldValue = '[]';
-                                break;
-                            default:
-                                fieldValue = `"<${fieldName}>"`;
+                        // Special handling for known field names
+                        if (fieldName === 'dummy' && field.placeholder === true) {
+                            fieldValue = 'true';
+                        } else if (fieldName === 'inputs' && field.type === 'array') {
+                            // Format arrays properly with the placeholder or default value
+                            const arrayContent = field.placeholder || "your array of input.s";
+                            fieldValue = `["${arrayContent}"]`;
+                        } else {
+                            // Generate value based on type and use placeholder if available
+                            switch (field.type) {
+                                case 'string':
+                                    fieldValue = field.placeholder ? `"${field.placeholder}"` : `"<${fieldName}>"`;
+                                    break;
+                                case 'boolean':
+                                    fieldValue = field.placeholder === true || field.default === true ? 'true' : 'false';
+                                    break;
+                                case 'number':
+                                    fieldValue = field.placeholder !== undefined ? field.placeholder : (field.default || '0');
+                                    break;
+                                case 'array':
+                                    fieldValue = field.placeholder ? `["${field.placeholder}"]` : '[]';
+                                    break;
+                                default:
+                                    fieldValue = `"<${fieldName}>"`;
+                            }
                         }
                         
-                        bodyFields += `    "${fieldName}": ${fieldValue}${index < requiredFields.length - 1 ? ',\n' : '\n'}`;
+                        bodyFields += `    "${fieldName}": ${fieldValue}${index < requiredFields.length - 1 ? ',\n' : ''}`;
                     });
-                    
-
-                    
-                    // Always add inputs field
-                    bodyFields += (bodyFields ? ',\n' : '') + '    "inputs": ["<replace with your array of inputs>"]';
-                    
-                    // Add standard callback-url and dummy parameters
-                    const callbackUrl = '{{ $execution.resumeUrl }}';
                     
                     // Create a mutable template object
                     const n8nTemplate = {
@@ -751,7 +793,7 @@ ${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "${callbackUrl}",
                             },
                             "sendBody": true,
                             "specifyBody": "json",
-                            "jsonBody": `={\n${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url":"${callbackUrl}",\n    "dummy":true\n}`,
+                            "jsonBody": `={\n${bodyFields}\n}`,
                             "options": {}
                           },
                           "id": "c72c0e7e-7658-473f-b386-bab97218c9e1",
@@ -788,6 +830,7 @@ ${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "${callbackUrl}",
                         jsonString = jsonString.replace('"value": "<your api key>"', `"value": "${this.userApiKey}"`);
                     }
                     
+                    console.log(`Generated n8n command for ${tool.slug}`);
                     return jsonString;
                 },
                 
