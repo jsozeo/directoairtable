@@ -567,57 +567,86 @@
                     
                     // Build dynamic body with required fields
                     let bodyFields = '';
-                    let requiredInputs = [];
                     
+                    // List of auth fields that should be excluded
+                    const excludedAuthFields = [
+                        'userAgent', 
+                        'sessionCookie', 
+                        'sessionCookieCUser', 
+                        'sessionCookieUserSession', 
+                        'sessionCookieXs'
+                    ];
+                    
+                    // First collect all required inputs
+                    let requiredInputs = [];
                     if (tool.inputs && tool.inputs.length > 0) {
-                        // Get all required fields, excluding only authentication fields
+                        // Filter required fields, excluding auth fields
                         requiredInputs = tool.inputs.filter(input => 
                             input.required === true && 
-                            !['userAgent', 'sessionCookie'].includes(input.name) &&
+                            !excludedAuthFields.includes(input.name) &&
                             input.name // Make sure name exists
                         );
-                        
-                        // Generate sample values for required fields
-                        if (requiredInputs.length > 0) {
-                            // Count actual fields to output for proper comma handling
-                            const validFields = requiredInputs.filter(input => input.name);
-                            
-                            validFields.forEach((input, index) => {
-                                const fieldName = input.name;
-                                let sampleValue = '';
-                                
-                                // Generate appropriate sample value based on type
-                                switch(input.type) {
-                                    case 'string':
-                                        sampleValue = input.placeholder ? `"${input.placeholder}"` : `"<${fieldName}>"`;
-                                        break;
-                                    case 'boolean':
-                                        sampleValue = input.default === true ? 'true' : 'false';
-                                        break;
-                                    case 'number':
-                                        sampleValue = input.placeholder || '0';
-                                        break;
-                                    case 'array':
-                                        sampleValue = '[]';
-                                        break;
-                                    default:
-                                        sampleValue = `"<${fieldName}>"`;
-                                }
-                                
-                                bodyFields += `    "${fieldName}": ${sampleValue}${index < validFields.length - 1 ? ',\n' : '\n'}`;
-                            });
-                        }
                     }
                     
-                    // Add default inputs field only if it's not already a required field or name-switched field
-                    const hasInputsField = requiredInputs.some(input => input.name === "inputs");
-                    const hasSpreadsheetUrl = requiredInputs.some(input => input.name === "spreadsheetUrl");
-                    const hasLinkedInSearchUrl = tool.inputs && tool.inputs.some(input => 
-                        input.required === true && input.nameSwitch === "linkedInSearchUrl"
+                    // Check if there are any fields that are inputs or special URL fields
+                    const hasRequiredInputs = requiredInputs.some(input => 
+                        input.name === "inputs" || 
+                        input.nameSwitch === "linkedInSearchUrl" || 
+                        input.nameSwitch === "spreadsheetUrl"
                     );
                     
-                    if (!hasInputsField && !hasSpreadsheetUrl && !hasLinkedInSearchUrl) {
+                    // Generate body fields from required inputs
+                    if (requiredInputs.length > 0) {
+                        const validFields = requiredInputs;
+                        
+                        validFields.forEach((input, index) => {
+                            const fieldName = input.name;
+                            let sampleValue = '';
+                            
+                            // Generate appropriate sample value based on type
+                            switch(input.type) {
+                                case 'string':
+                                    sampleValue = input.placeholder ? `"${input.placeholder}"` : `"<${fieldName}>"`;
+                                    break;
+                                case 'boolean':
+                                    sampleValue = input.default === true ? 'true' : 'false';
+                                    break;
+                                case 'number':
+                                    sampleValue = input.placeholder || '0';
+                                    break;
+                                case 'array':
+                                    sampleValue = '[]';
+                                    break;
+                                default:
+                                    sampleValue = `"<${fieldName}>"`;
+                            }
+                            
+                            bodyFields += `    "${fieldName}": ${sampleValue}${index < validFields.length - 1 ? ',\n' : '\n'}`;
+                        });
+                    }
+                    
+                    // Add default inputs field if no inputs/URL fields were found in required fields
+                    if (!hasRequiredInputs) {
                         bodyFields += (bodyFields ? ',\n' : '') + '    "inputs": ["<your array of inputs>"]';
+                    }
+                    
+                    // Get the callback-url placeholder from the "*" tool if available
+                    let callbackUrlPlaceholder = "<your callback url>";
+                    let dummyValue = "true";
+                    
+                    // Check universal fields from the "*" tool if available
+                    if (tool.slug !== "*" && tool.inputs) {
+                        const universalFields = tool.inputs.filter(input => input.slug === "*");
+                        const callbackUrlField = universalFields.find(field => field.name === "callback-url");
+                        const dummyField = universalFields.find(field => field.name === "dummy");
+                        
+                        if (callbackUrlField && callbackUrlField.placeholder) {
+                            callbackUrlPlaceholder = callbackUrlField.placeholder;
+                        }
+                        
+                        if (dummyField && dummyField.placeholder !== undefined) {
+                            dummyValue = dummyField.placeholder === true ? "true" : "false";
+                        }
                     }
                     
                     // Add standard parameters
@@ -625,8 +654,8 @@
 --header 'x-api-key: ${this.userApiKey}' \\
 --header 'Content-Type: application/json' \\
 --data '{
-${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "<your callback url>",
-    "dummy": true
+${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "${callbackUrlPlaceholder}",
+    "dummy": ${dummyValue}
 }'`;
                 },
                 
@@ -637,65 +666,86 @@ ${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "<your callback url>"
                     
                     // Build dynamic body with required fields
                     let bodyFields = '';
+                    
+                    // List of auth fields that should be excluded
+                    const excludedAuthFields = [
+                        'userAgent', 
+                        'sessionCookie', 
+                        'sessionCookieCUser', 
+                        'sessionCookieUserSession', 
+                        'sessionCookieXs'
+                    ];
+                    
+                    // First collect all required inputs
                     let requiredInputs = [];
-                    
-                    // Debug log to find required fields for this specific tool
-                    console.log(`Processing tool: ${tool.slug}`);
-                    if (tool.inputs) {
-                        const reqFields = tool.inputs.filter(i => i.required);
-                        console.log(`Required fields count: ${reqFields.length}`);
-                        reqFields.forEach(f => console.log(`Required field: ${f.name} (nameSwitch: ${f.nameSwitch})`));
-                    }
-                    
                     if (tool.inputs && tool.inputs.length > 0) {
-                        // Get all required fields, excluding only authentication fields
+                        // Filter required fields, excluding auth fields
                         requiredInputs = tool.inputs.filter(input => 
                             input.required === true && 
-                            !['userAgent', 'sessionCookie'].includes(input.name) &&
+                            !excludedAuthFields.includes(input.name) &&
                             input.name // Make sure name exists
                         );
-                        
-                        // Generate sample values for required fields
-                        if (requiredInputs.length > 0) {
-                            // Count actual fields to output for proper comma handling
-                            const validFields = requiredInputs.filter(input => input.name);
-                            
-                            validFields.forEach((input, index) => {
-                                const fieldName = input.name;
-                                let sampleValue = '';
-                                
-                                // Generate appropriate sample value based on type
-                                switch(input.type) {
-                                    case 'string':
-                                        sampleValue = input.placeholder ? `"${input.placeholder}"` : `"<${fieldName}>"`;
-                                        break;
-                                    case 'boolean':
-                                        sampleValue = input.default === true ? 'true' : 'false';
-                                        break;
-                                    case 'number':
-                                        sampleValue = input.placeholder || '0';
-                                        break;
-                                    case 'array':
-                                        sampleValue = '[]';
-                                        break;
-                                    default:
-                                        sampleValue = `"<${fieldName}>"`;
-                                }
-                                
-                                bodyFields += `    "${fieldName}": ${sampleValue}${index < validFields.length - 1 ? ',\n' : '\n'}`;
-                            });
-                        }
                     }
                     
-                    // Add default inputs field only if it's not already a required field or name-switched field
-                    const hasInputsField = requiredInputs.some(input => input.name === "inputs");
-                    const hasSpreadsheetUrl = requiredInputs.some(input => input.name === "spreadsheetUrl");
-                    const hasLinkedInSearchUrl = tool.inputs && tool.inputs.some(input => 
-                        input.required === true && input.nameSwitch === "linkedInSearchUrl"
+                    // Check if there are any fields that are inputs or special URL fields
+                    const hasRequiredInputs = requiredInputs.some(input => 
+                        input.name === "inputs" || 
+                        input.nameSwitch === "linkedInSearchUrl" || 
+                        input.nameSwitch === "spreadsheetUrl"
                     );
                     
-                    if (!hasInputsField && !hasSpreadsheetUrl && !hasLinkedInSearchUrl) {
+                    // Generate body fields from required inputs
+                    if (requiredInputs.length > 0) {
+                        const validFields = requiredInputs;
+                        
+                        validFields.forEach((input, index) => {
+                            const fieldName = input.name;
+                            let sampleValue = '';
+                            
+                            // Generate appropriate sample value based on type
+                            switch(input.type) {
+                                case 'string':
+                                    sampleValue = input.placeholder ? `"${input.placeholder}"` : `"<${fieldName}>"`;
+                                    break;
+                                case 'boolean':
+                                    sampleValue = input.default === true ? 'true' : 'false';
+                                    break;
+                                case 'number':
+                                    sampleValue = input.placeholder || '0';
+                                    break;
+                                case 'array':
+                                    sampleValue = '[]';
+                                    break;
+                                default:
+                                    sampleValue = `"<${fieldName}>"`;
+                            }
+                            
+                            bodyFields += `    "${fieldName}": ${sampleValue}${index < validFields.length - 1 ? ',\n' : '\n'}`;
+                        });
+                    }
+                    
+                    // Add default inputs field if no inputs/URL fields were found in required fields
+                    if (!hasRequiredInputs) {
                         bodyFields += (bodyFields ? ',\n' : '') + '    "inputs": ["<replace with your array of inputs>"]';
+                    }
+                    
+                    // Get the callback-url placeholder from the "*" tool if available
+                    let callbackUrlPlaceholder = "{{ $execution.resumeUrl }}";
+                    let dummyValue = "true";
+                    
+                    // Check universal fields from the "*" tool if available
+                    if (tool.slug !== "*" && tool.inputs) {
+                        const universalFields = tool.inputs.filter(input => input.slug === "*");
+                        const callbackUrlField = universalFields.find(field => field.name === "callback-url");
+                        const dummyField = universalFields.find(field => field.name === "dummy");
+                        
+                        if (callbackUrlField && callbackUrlField.placeholder) {
+                            callbackUrlPlaceholder = callbackUrlField.placeholder;
+                        }
+                        
+                        if (dummyField && dummyField.placeholder !== undefined) {
+                            dummyValue = dummyField.placeholder === true ? "true" : "false";
+                        }
                     }
                     
                     // Create a mutable template object
@@ -752,7 +802,7 @@ ${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "<your callback url>"
                             },
                             "sendBody": true,
                             "specifyBody": "json",
-                            "jsonBody": `={\n${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url":"{{ $execution.resumeUrl }}",\n    "dummy":true\n}`,
+                            "jsonBody": `={\n${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url":"${callbackUrlPlaceholder}",\n    "dummy":${dummyValue}\n}`,
                             "options": {}
                           },
                           "id": "c72c0e7e-7658-473f-b386-bab97218c9e1",
