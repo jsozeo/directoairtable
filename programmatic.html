@@ -570,75 +570,10 @@
                     let requiredInputs = [];
                     
                     if (tool.inputs && tool.inputs.length > 0) {
-                        // Get all required fields, but exclude authentication fields
+                        // Get all required fields, but exclude only the authentication fields that the lambda adds
                         requiredInputs = tool.inputs.filter(input => 
                             input.required === true && 
-                            !['userAgent', 'sessionCookie', 'identityId'].includes(input.name) &&
-                            input.name // Make sure name exists
-                        );
-                        
-                        // Generate sample values for required fields
-                        if (requiredInputs.length > 0) {
-                            requiredInputs.forEach((input, index) => {
-                                // Skip if no name is provided
-                                if (!input.name) return;
-                                
-                                const fieldName = input.name;
-                                let sampleValue = '';
-                                
-                                // Generate appropriate sample value based on type
-                                switch(input.type) {
-                                    case 'string':
-                                        sampleValue = input.placeholder ? `"${input.placeholder}"` : `"<${fieldName}>"`;
-                                        break;
-                                    case 'boolean':
-                                        sampleValue = input.default === true ? 'true' : 'false';
-                                        break;
-                                    case 'number':
-                                        sampleValue = input.placeholder || '0';
-                                        break;
-                                    case 'array':
-                                        sampleValue = '[]';
-                                        break;
-                                    default:
-                                        sampleValue = `"<${fieldName}>"`;
-                                }
-                                
-                                bodyFields += `    "${fieldName}": ${sampleValue}${index < requiredInputs.length - 1 ? ',\n' : '\n'}`;
-                            });
-                        }
-                    }
-                    
-                    // Always include inputs if it's not already included as a required field
-                    if (!requiredInputs.some(input => input.name === "inputs") && 
-                        !requiredInputs.some(input => input.name === "spreadsheetUrl")) {
-                        bodyFields += (bodyFields ? ',\n' : '') + '    "inputs": ["<your array of inputs>"]';
-                    }
-                    
-                    // Add standard parameters
-                    return `curl --location 'https://api.precrm.fr/action/${tool.slug}' \\
---header 'x-api-key: ${this.userApiKey}' \\
---header 'Content-Type: application/json' \\
---data '{
-${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "<your callback url>",
-    "dummy": true
-}'`;
-                },
-                
-                generateN8n(tool) {
-                    if (tool.slug.startsWith('dynamodb_')) {
-                        return this.generateDynamoDbN8n(tool);
-                    }
-                    
-                    // Build dynamic body with required fields
-                    let bodyFields = '';
-                    let requiredInputs = [];
-                    
-                    if (tool.inputs && tool.inputs.length > 0) {
-                        // Get all required fields, but exclude authentication fields
-                        requiredInputs = tool.inputs.filter(input => 
-                            input.required === true && 
-                            !['userAgent', 'sessionCookie', 'identityId'].includes(input.name) &&
+                            !['userAgent', 'sessionCookie'].includes(input.name) &&
                             input.name // Make sure name exists
                         );
                         
@@ -676,7 +611,74 @@ ${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "<your callback url>"
                     
                     // Always include inputs if it's not already included as a required field
                     if (!requiredInputs.some(input => input.name === "inputs") && 
-                        !requiredInputs.some(input => input.name === "spreadsheetUrl")) {
+                        !requiredInputs.some(input => input.name === "spreadsheetUrl") &&
+                        !requiredInputs.some(input => input.nameSwitch === "linkedInSearchUrl")) {
+                        bodyFields += (bodyFields ? ',\n' : '') + '    "inputs": ["<your array of inputs>"]';
+                    }
+                    
+                    // Add standard parameters
+                    return `curl --location 'https://api.precrm.fr/action/${tool.slug}' \\
+--header 'x-api-key: ${this.userApiKey}' \\
+--header 'Content-Type: application/json' \\
+--data '{
+${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "<your callback url>",
+    "dummy": true
+}'`;
+                },
+                
+                generateN8n(tool) {
+                    if (tool.slug.startsWith('dynamodb_')) {
+                        return this.generateDynamoDbN8n(tool);
+                    }
+                    
+                    // Build dynamic body with required fields
+                    let bodyFields = '';
+                    let requiredInputs = [];
+                    
+                    if (tool.inputs && tool.inputs.length > 0) {
+                        // Get all required fields, but exclude only the authentication fields that the lambda adds
+                        requiredInputs = tool.inputs.filter(input => 
+                            input.required === true && 
+                            !['userAgent', 'sessionCookie'].includes(input.name) &&
+                            input.name // Make sure name exists
+                        );
+                        
+                        // Generate sample values for required fields
+                        if (requiredInputs.length > 0) {
+                            // Count actual fields to output for proper comma handling
+                            const validFields = requiredInputs.filter(input => input.name);
+                            
+                            validFields.forEach((input, index) => {
+                                const fieldName = input.name;
+                                let sampleValue = '';
+                                
+                                // Generate appropriate sample value based on type
+                                switch(input.type) {
+                                    case 'string':
+                                        sampleValue = input.placeholder ? `"${input.placeholder}"` : `"<${fieldName}>"`;
+                                        break;
+                                    case 'boolean':
+                                        sampleValue = input.default === true ? 'true' : 'false';
+                                        break;
+                                    case 'number':
+                                        sampleValue = input.placeholder || '0';
+                                        break;
+                                    case 'array':
+                                        sampleValue = '[]';
+                                        break;
+                                    default:
+                                        sampleValue = `"<${fieldName}>"`;
+                                }
+                                
+                                bodyFields += `    "${fieldName}": ${sampleValue}${index < validFields.length - 1 ? ',\n' : '\n'}`;
+                            });
+                        }
+                    }
+                    
+                    // Always include inputs if it's not already included as a required field
+                    if (!requiredInputs.some(input => input.name === "inputs") && 
+                        !requiredInputs.some(input => input.name === "spreadsheetUrl") &&
+                        !requiredInputs.some(input => input.nameSwitch === "linkedInSearchUrl")) {
                         bodyFields += (bodyFields ? ',\n' : '') + '    "inputs": ["<replace with your array of inputs>"]';
                     }
                     
