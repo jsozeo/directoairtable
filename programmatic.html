@@ -453,16 +453,34 @@
                             continue;
                         }
                         
-                        const inItems = item[slug].in || [];
+                        const toolData = item[slug];
+                        const inItems = toolData.in || [];
+                        const outItems = toolData.out || [];
                         
                         if (inItems.length > 0) {
                             const firstItem = inItems[0];
                             
-                            tools.push({
+                            const tool = {
                                 slug: slug,
                                 platform: firstItem.platform,
-                                object: firstItem.object
-                            });
+                                object: firstItem.object,
+                                inputs: inItems.map(input => ({
+                                    name: input.name,
+                                    nameSwitch: input.nameSwitch,
+                                    type: input.type || "string",
+                                    required: input.required || false,
+                                    label: input.label || input.name,
+                                    placeholder: input.placeholder || null,
+                                    helpers: input.helpers || null,
+                                    default: input.default || null
+                                })),
+                                outputs: outItems.map(output => ({
+                                    name: output.name,
+                                    description: output.description || null
+                                }))
+                            };
+                            
+                            tools.push(tool);
                         }
                     }
                     
@@ -547,19 +565,102 @@
                         return this.generateDynamoDbCurl(tool);
                     }
                     
+                    // Build dynamic body with required fields
+                    let bodyFields = '';
+                    let requiredInputs = [];
+                    
+                    if (tool.inputs && tool.inputs.length > 0) {
+                        // Get all required fields
+                        requiredInputs = tool.inputs.filter(input => input.required === true);
+                        
+                        // Generate sample values for required fields
+                        if (requiredInputs.length > 0) {
+                            requiredInputs.forEach((input, index) => {
+                                const fieldName = input.nameSwitch || input.name;
+                                let sampleValue = '';
+                                
+                                // Generate appropriate sample value based on type
+                                switch(input.type) {
+                                    case 'string':
+                                        sampleValue = input.placeholder || `"<${fieldName}>"`;
+                                        break;
+                                    case 'boolean':
+                                        sampleValue = input.default === true ? 'true' : 'false';
+                                        break;
+                                    case 'number':
+                                        sampleValue = input.placeholder || '0';
+                                        break;
+                                    case 'array':
+                                        sampleValue = '[]';
+                                        break;
+                                    default:
+                                        sampleValue = `"<${fieldName}>"`;
+                                }
+                                
+                                bodyFields += `    "${fieldName}": ${sampleValue}${index < requiredInputs.length - 1 || tool.inputs.some(input => input.name === "inputs") ? ',\n' : '\n'}`;
+                            });
+                        }
+                    }
+                    
+                    // Always include inputs, callback-url and dummy params as they're expected by all actions
+                    if (!tool.inputs || !tool.inputs.some(input => input.name === "inputs")) {
+                        bodyFields += '    "inputs": ["<your array of inputs>"],\n';
+                    }
+                    
                     return `curl --location 'https://api.precrm.fr/action/${tool.slug}' \\
 --header 'x-api-key: ${this.userApiKey}' \\
 --header 'Content-Type: application/json' \\
 --data '{
-    "inputs":["<your array of inputs>"],
-    "callback-url":"<your callback url>",
-    "dummy":true
+${bodyFields}    "callback-url": "<your callback url>",
+    "dummy": true
 }'`;
                 },
                 
                 generateN8n(tool) {
                     if (tool.slug.startsWith('dynamodb_')) {
                         return this.generateDynamoDbN8n(tool);
+                    }
+                    
+                    // Build dynamic body with required fields
+                    let bodyFields = '';
+                    let requiredInputs = [];
+                    
+                    if (tool.inputs && tool.inputs.length > 0) {
+                        // Get all required fields
+                        requiredInputs = tool.inputs.filter(input => input.required === true);
+                        
+                        // Generate sample values for required fields
+                        if (requiredInputs.length > 0) {
+                            requiredInputs.forEach((input, index) => {
+                                const fieldName = input.nameSwitch || input.name;
+                                let sampleValue = '';
+                                
+                                // Generate appropriate sample value based on type
+                                switch(input.type) {
+                                    case 'string':
+                                        sampleValue = input.placeholder || `"<${fieldName}>"`;
+                                        break;
+                                    case 'boolean':
+                                        sampleValue = input.default === true ? 'true' : 'false';
+                                        break;
+                                    case 'number':
+                                        sampleValue = input.placeholder || '0';
+                                        break;
+                                    case 'array':
+                                        sampleValue = '[]';
+                                        break;
+                                    default:
+                                        sampleValue = `"<${fieldName}>"`;
+                                }
+                                
+                                bodyFields += `    "${fieldName}": ${sampleValue}${index < requiredInputs.length - 1 || tool.inputs.some(input => input.name === "inputs") ? ',\n' : '\n'}`;
+                            });
+                        }
+                    }
+                    
+                    // Always include inputs, callback-url and dummy params as they're expected by all actions
+                    if (!tool.inputs || !tool.inputs.some(input => input.name === "inputs")) {
+                        bodyFields += '    "inputs": ["<replace with your array of inputs>"],\n';
                     }
                     
                     // Create a mutable template object
@@ -587,7 +688,8 @@
                         },
                         {
                           "parameters": {
-                            "content": `## ${tool.slug} \n**Update your array of input in request body**`,
+                            "content": `## ${tool.slug} - ${tool.platform} ${tool.object}\n**Required fields are pre-filled below. Update as needed.**${tool.inputs && tool.inputs.some(input => input.required) ? 
+                            '\n\nRequired fields:\n' + tool.inputs.filter(input => input.required).map(input => '- ' + input.label).join('\n') : ''}`,
                             "height": 331,
                             "width": 451
                           },
@@ -615,11 +717,11 @@
                             },
                             "sendBody": true,
                             "specifyBody": "json",
-                            "jsonBody": "={\n    \"inputs\":[\"<replace with your array of inputs>\"],\n    \"callback-url\":\"{{ $execution.resumeUrl }}\",\n    \"dummy\":true\n}",
+                            "jsonBody": `={\n${bodyFields}    "callback-url":"{{ $execution.resumeUrl }}",\n    "dummy":true\n}`,
                             "options": {}
                           },
                           "id": "c72c0e7e-7658-473f-b386-bab97218c9e1",
-                          "name": `HTTP Request - ${tool.slug}`,
+                          "name": `HTTP Request - ${tool.platform}: ${tool.object}`,
                           "type": "n8n-nodes-base.httpRequest",
                           "typeVersion": 4.2,
                           "position": [
@@ -629,7 +731,7 @@
                         }
                       ],
                       "connections": {
-                        [`HTTP Request - ${tool.slug}`]: {
+                        [`HTTP Request - ${tool.platform}: ${tool.object}`]: {
                           "main": [
                             [
                               {
