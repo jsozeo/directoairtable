@@ -570,8 +570,11 @@
                     let requiredInputs = [];
                     
                     if (tool.inputs && tool.inputs.length > 0) {
-                        // Get all required fields
-                        requiredInputs = tool.inputs.filter(input => input.required === true);
+                        // Get all required fields, but exclude authentication fields
+                        requiredInputs = tool.inputs.filter(input => 
+                            input.required === true && 
+                            !['userAgent', 'sessionCookie', 'identityId'].includes(input.nameSwitch || input.name)
+                        );
                         
                         // Generate sample values for required fields
                         if (requiredInputs.length > 0) {
@@ -582,7 +585,7 @@
                                 // Generate appropriate sample value based on type
                                 switch(input.type) {
                                     case 'string':
-                                        sampleValue = input.placeholder || `"<${fieldName}>"`;
+                                        sampleValue = input.placeholder ? `"${input.placeholder}"` : `"<${fieldName}>"`;
                                         break;
                                     case 'boolean':
                                         sampleValue = input.default === true ? 'true' : 'false';
@@ -597,21 +600,23 @@
                                         sampleValue = `"<${fieldName}>"`;
                                 }
                                 
-                                bodyFields += `    "${fieldName}": ${sampleValue}${index < requiredInputs.length - 1 || tool.inputs.some(input => input.name === "inputs") ? ',\n' : '\n'}`;
+                                bodyFields += `    "${fieldName}": ${sampleValue}${index < requiredInputs.length - 1 ? ',\n' : '\n'}`;
                             });
                         }
                     }
                     
-                    // Always include inputs, callback-url and dummy params as they're expected by all actions
-                    if (!tool.inputs || !tool.inputs.some(input => input.name === "inputs")) {
-                        bodyFields += '    "inputs": ["<your array of inputs>"],\n';
+                    // Always include inputs if it's not already included as a required field
+                    if (!requiredInputs.some(input => (input.nameSwitch || input.name) === "inputs") && 
+                        !requiredInputs.some(input => (input.nameSwitch || input.name) === "spreadsheetUrl")) {
+                        bodyFields += (bodyFields ? ',\n' : '') + '    "inputs": ["<your array of inputs>"]';
                     }
                     
+                    // Add standard parameters
                     return `curl --location 'https://api.precrm.fr/action/${tool.slug}' \\
 --header 'x-api-key: ${this.userApiKey}' \\
 --header 'Content-Type: application/json' \\
 --data '{
-${bodyFields}    "callback-url": "<your callback url>",
+${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "<your callback url>",
     "dummy": true
 }'`;
                 },
@@ -626,8 +631,11 @@ ${bodyFields}    "callback-url": "<your callback url>",
                     let requiredInputs = [];
                     
                     if (tool.inputs && tool.inputs.length > 0) {
-                        // Get all required fields
-                        requiredInputs = tool.inputs.filter(input => input.required === true);
+                        // Get all required fields, but exclude authentication fields
+                        requiredInputs = tool.inputs.filter(input => 
+                            input.required === true && 
+                            !['userAgent', 'sessionCookie', 'identityId'].includes(input.nameSwitch || input.name)
+                        );
                         
                         // Generate sample values for required fields
                         if (requiredInputs.length > 0) {
@@ -638,7 +646,7 @@ ${bodyFields}    "callback-url": "<your callback url>",
                                 // Generate appropriate sample value based on type
                                 switch(input.type) {
                                     case 'string':
-                                        sampleValue = input.placeholder || `"<${fieldName}>"`;
+                                        sampleValue = input.placeholder ? `"${input.placeholder}"` : `"<${fieldName}>"`;
                                         break;
                                     case 'boolean':
                                         sampleValue = input.default === true ? 'true' : 'false';
@@ -653,14 +661,15 @@ ${bodyFields}    "callback-url": "<your callback url>",
                                         sampleValue = `"<${fieldName}>"`;
                                 }
                                 
-                                bodyFields += `    "${fieldName}": ${sampleValue}${index < requiredInputs.length - 1 || tool.inputs.some(input => input.name === "inputs") ? ',\n' : '\n'}`;
+                                bodyFields += `    "${fieldName}": ${sampleValue}${index < requiredInputs.length - 1 ? ',\n' : '\n'}`;
                             });
                         }
                     }
                     
-                    // Always include inputs, callback-url and dummy params as they're expected by all actions
-                    if (!tool.inputs || !tool.inputs.some(input => input.name === "inputs")) {
-                        bodyFields += '    "inputs": ["<replace with your array of inputs>"],\n';
+                    // Always include inputs if it's not already included as a required field
+                    if (!requiredInputs.some(input => (input.nameSwitch || input.name) === "inputs") && 
+                        !requiredInputs.some(input => (input.nameSwitch || input.name) === "spreadsheetUrl")) {
+                        bodyFields += (bodyFields ? ',\n' : '') + '    "inputs": ["<replace with your array of inputs>"]';
                     }
                     
                     // Create a mutable template object
@@ -688,8 +697,8 @@ ${bodyFields}    "callback-url": "<your callback url>",
                         },
                         {
                           "parameters": {
-                            "content": `## ${tool.slug} - ${tool.platform} ${tool.object}\n**Required fields are pre-filled below. Update as needed.**${tool.inputs && tool.inputs.some(input => input.required) ? 
-                            '\n\nRequired fields:\n' + tool.inputs.filter(input => input.required).map(input => '- ' + input.label).join('\n') : ''}`,
+                            "content": `## ${tool.slug} - ${tool.platform} ${tool.object}\n**Required parameters are pre-filled below. Update as needed.**${requiredInputs.length > 0 ? 
+                            '\n\nRequired fields:\n' + requiredInputs.map(input => '- ' + (input.label || input.name)).join('\n') : ''}`,
                             "height": 331,
                             "width": 451
                           },
@@ -717,7 +726,7 @@ ${bodyFields}    "callback-url": "<your callback url>",
                             },
                             "sendBody": true,
                             "specifyBody": "json",
-                            "jsonBody": `={\n${bodyFields}    "callback-url":"{{ $execution.resumeUrl }}",\n    "dummy":true\n}`,
+                            "jsonBody": `={\n${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url":"{{ $execution.resumeUrl }}",\n    "dummy":true\n}`,
                             "options": {}
                           },
                           "id": "c72c0e7e-7658-473f-b386-bab97218c9e1",
