@@ -570,7 +570,7 @@
                     let requiredInputs = [];
                     
                     if (tool.inputs && tool.inputs.length > 0) {
-                        // Get all required fields, but exclude only the authentication fields that the lambda adds
+                        // Get all required fields, excluding only authentication fields
                         requiredInputs = tool.inputs.filter(input => 
                             input.required === true && 
                             !['userAgent', 'sessionCookie'].includes(input.name) &&
@@ -609,10 +609,14 @@
                         }
                     }
                     
-                    // Always include inputs if it's not already included as a required field
-                    if (!requiredInputs.some(input => input.name === "inputs") && 
-                        !requiredInputs.some(input => input.name === "spreadsheetUrl") &&
-                        !requiredInputs.some(input => input.nameSwitch === "linkedInSearchUrl")) {
+                    // Add default inputs field only if it's not already a required field or name-switched field
+                    const hasInputsField = requiredInputs.some(input => input.name === "inputs");
+                    const hasSpreadsheetUrl = requiredInputs.some(input => input.name === "spreadsheetUrl");
+                    const hasLinkedInSearchUrl = tool.inputs && tool.inputs.some(input => 
+                        input.required === true && input.nameSwitch === "linkedInSearchUrl"
+                    );
+                    
+                    if (!hasInputsField && !hasSpreadsheetUrl && !hasLinkedInSearchUrl) {
                         bodyFields += (bodyFields ? ',\n' : '') + '    "inputs": ["<your array of inputs>"]';
                     }
                     
@@ -635,8 +639,16 @@ ${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "<your callback url>"
                     let bodyFields = '';
                     let requiredInputs = [];
                     
+                    // Debug log to find required fields for this specific tool
+                    console.log(`Processing tool: ${tool.slug}`);
+                    if (tool.inputs) {
+                        const reqFields = tool.inputs.filter(i => i.required);
+                        console.log(`Required fields count: ${reqFields.length}`);
+                        reqFields.forEach(f => console.log(`Required field: ${f.name} (nameSwitch: ${f.nameSwitch})`));
+                    }
+                    
                     if (tool.inputs && tool.inputs.length > 0) {
-                        // Get all required fields, but exclude only the authentication fields that the lambda adds
+                        // Get all required fields, excluding only authentication fields
                         requiredInputs = tool.inputs.filter(input => 
                             input.required === true && 
                             !['userAgent', 'sessionCookie'].includes(input.name) &&
@@ -675,10 +687,14 @@ ${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "<your callback url>"
                         }
                     }
                     
-                    // Always include inputs if it's not already included as a required field
-                    if (!requiredInputs.some(input => input.name === "inputs") && 
-                        !requiredInputs.some(input => input.name === "spreadsheetUrl") &&
-                        !requiredInputs.some(input => input.nameSwitch === "linkedInSearchUrl")) {
+                    // Add default inputs field only if it's not already a required field or name-switched field
+                    const hasInputsField = requiredInputs.some(input => input.name === "inputs");
+                    const hasSpreadsheetUrl = requiredInputs.some(input => input.name === "spreadsheetUrl");
+                    const hasLinkedInSearchUrl = tool.inputs && tool.inputs.some(input => 
+                        input.required === true && input.nameSwitch === "linkedInSearchUrl"
+                    );
+                    
+                    if (!hasInputsField && !hasSpreadsheetUrl && !hasLinkedInSearchUrl) {
                         bodyFields += (bodyFields ? ',\n' : '') + '    "inputs": ["<replace with your array of inputs>"]';
                     }
                     
