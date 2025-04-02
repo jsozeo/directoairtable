@@ -573,13 +573,14 @@
                         // Get all required fields, but exclude authentication fields
                         requiredInputs = tool.inputs.filter(input => 
                             input.required === true && 
-                            !['userAgent', 'sessionCookie', 'identityId'].includes(input.nameSwitch || input.name)
+                            !['userAgent', 'sessionCookie', 'identityId'].includes(input.name)
                         );
                         
                         // Generate sample values for required fields
                         if (requiredInputs.length > 0) {
                             requiredInputs.forEach((input, index) => {
-                                const fieldName = input.nameSwitch || input.name;
+                                // Use name, not nameSwitch - the backend will handle this conversion
+                                const fieldName = input.name;
                                 let sampleValue = '';
                                 
                                 // Generate appropriate sample value based on type
@@ -606,8 +607,8 @@
                     }
                     
                     // Always include inputs if it's not already included as a required field
-                    if (!requiredInputs.some(input => (input.nameSwitch || input.name) === "inputs") && 
-                        !requiredInputs.some(input => (input.nameSwitch || input.name) === "spreadsheetUrl")) {
+                    if (!requiredInputs.some(input => input.name === "inputs") && 
+                        !requiredInputs.some(input => input.name === "spreadsheetUrl")) {
                         bodyFields += (bodyFields ? ',\n' : '') + '    "inputs": ["<your array of inputs>"]';
                     }
                     
@@ -634,13 +635,14 @@ ${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "<your callback url>"
                         // Get all required fields, but exclude authentication fields
                         requiredInputs = tool.inputs.filter(input => 
                             input.required === true && 
-                            !['userAgent', 'sessionCookie', 'identityId'].includes(input.nameSwitch || input.name)
+                            !['userAgent', 'sessionCookie', 'identityId'].includes(input.name)
                         );
                         
                         // Generate sample values for required fields
                         if (requiredInputs.length > 0) {
                             requiredInputs.forEach((input, index) => {
-                                const fieldName = input.nameSwitch || input.name;
+                                // Use name, not nameSwitch - the backend will handle this conversion
+                                const fieldName = input.name;
                                 let sampleValue = '';
                                 
                                 // Generate appropriate sample value based on type
@@ -667,8 +669,8 @@ ${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "<your callback url>"
                     }
                     
                     // Always include inputs if it's not already included as a required field
-                    if (!requiredInputs.some(input => (input.nameSwitch || input.name) === "inputs") && 
-                        !requiredInputs.some(input => (input.nameSwitch || input.name) === "spreadsheetUrl")) {
+                    if (!requiredInputs.some(input => input.name === "inputs") && 
+                        !requiredInputs.some(input => input.name === "spreadsheetUrl")) {
                         bodyFields += (bodyFields ? ',\n' : '') + '    "inputs": ["<replace with your array of inputs>"]';
                     }
                     
