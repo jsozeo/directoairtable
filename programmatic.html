@@ -573,13 +573,16 @@
                         // Get all required fields, but exclude authentication fields
                         requiredInputs = tool.inputs.filter(input => 
                             input.required === true && 
-                            !['userAgent', 'sessionCookie', 'identityId'].includes(input.name)
+                            !['userAgent', 'sessionCookie', 'identityId'].includes(input.name) &&
+                            input.name // Make sure name exists
                         );
                         
                         // Generate sample values for required fields
                         if (requiredInputs.length > 0) {
                             requiredInputs.forEach((input, index) => {
-                                // Use name, not nameSwitch - the backend will handle this conversion
+                                // Skip if no name is provided
+                                if (!input.name) return;
+                                
                                 const fieldName = input.name;
                                 let sampleValue = '';
                                 
@@ -635,13 +638,16 @@ ${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "<your callback url>"
                         // Get all required fields, but exclude authentication fields
                         requiredInputs = tool.inputs.filter(input => 
                             input.required === true && 
-                            !['userAgent', 'sessionCookie', 'identityId'].includes(input.name)
+                            !['userAgent', 'sessionCookie', 'identityId'].includes(input.name) &&
+                            input.name // Make sure name exists
                         );
                         
                         // Generate sample values for required fields
                         if (requiredInputs.length > 0) {
-                            requiredInputs.forEach((input, index) => {
-                                // Use name, not nameSwitch - the backend will handle this conversion
+                            // Count actual fields to output for proper comma handling
+                            const validFields = requiredInputs.filter(input => input.name);
+                            
+                            validFields.forEach((input, index) => {
                                 const fieldName = input.name;
                                 let sampleValue = '';
                                 
@@ -663,7 +669,7 @@ ${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "<your callback url>"
                                         sampleValue = `"<${fieldName}>"`;
                                 }
                                 
-                                bodyFields += `    "${fieldName}": ${sampleValue}${index < requiredInputs.length - 1 ? ',\n' : '\n'}`;
+                                bodyFields += `    "${fieldName}": ${sampleValue}${index < validFields.length - 1 ? ',\n' : '\n'}`;
                             });
                         }
                     }
@@ -700,7 +706,7 @@ ${bodyFields}${bodyFields ? ',\n' : ''}    "callback-url": "<your callback url>"
                         {
                           "parameters": {
                             "content": `## ${tool.slug} - ${tool.platform} ${tool.object}\n**Required parameters are pre-filled below. Update as needed.**${requiredInputs.length > 0 ? 
-                            '\n\nRequired fields:\n' + requiredInputs.map(input => '- ' + (input.label || input.name)).join('\n') : ''}`,
+                            '\n\nRequired fields:\n' + requiredInputs.filter(input => input.name).map(input => '- ' + (input.label || input.name)).join('\n') : ''}`,
                             "height": 331,
                             "width": 451
                           },
