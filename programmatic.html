@@ -714,9 +714,8 @@ ${bodyFields}
                         if (fieldName === 'dummy' && field.placeholder === true) {
                             fieldValue = 'true';
                         } else if (fieldName === 'inputs' && field.type === 'array') {
-                            // Format arrays without quotes around placeholder for n8n
-                            const arrayContent = field.placeholder || "your array of input.s";
-                            fieldValue = `[${arrayContent}]`;  // No quotes around placeholder for arrays
+                            // For inputs field, just use the placeholder directly without brackets
+                            fieldValue = field.placeholder || "[your array of input.s]";
                         } else {
                             // Generate value based on type and use placeholder if available
                             switch (field.type) {
@@ -733,8 +732,8 @@ ${bodyFields}
                                     fieldValue = field.placeholder !== undefined ? `${field.placeholder}` : (field.default || '0');
                                     break;
                                 case 'array':
-                                    // No quotes for array placeholders
-                                    fieldValue = field.placeholder ? `[${field.placeholder}]` : '[]';
+                                    // For arrays, use the placeholder directly without adding brackets
+                                    fieldValue = field.placeholder || "[]";
                                     break;
                                 case 'object':
                                     // No quotes for object placeholders
