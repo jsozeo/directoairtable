@@ -163,6 +163,10 @@
                 <input type="text" class="form-control" id="company" required>
             </div>
             <div class="mb-3">
+                <label class="form-label">Company URL</label>
+                <input type="url" class="form-control" id="companyUrl" placeholder="https://...">
+            </div>
+            <div class="mb-3">
                 <label class="form-label">Job URL</label>
                 <input type="url" class="form-control" id="jobUrl" placeholder="https://...">
             </div>
@@ -257,7 +261,8 @@
             description: 'jobDescription', // Correct
             requirements: 'jobFunctions',  // Correct
             jobUrl: 'jobUrl',             // Added
-            logoUrl: 'logoUrl'            // Added
+            logoUrl: 'logoUrl',           // Added
+            companyUrl: 'companyUrl'      // Added
         };
 
         async function loadJobs() {
@@ -303,6 +308,7 @@
                 const status = job[fieldMapping.status] || '';
                 const jobUrl = job.jobUrl || '#';
                 const logoUrl = job.logoUrl || '';
+                const companyUrl = job.companyUrl || '#';
                 
                 return `
                     <tr class="company-row" data-job-id="${jobId}">
@@ -318,7 +324,14 @@
                         <td>
                             <div class="d-flex align-items-center">
                                 ${logoUrl ? `<img src="${logoUrl}" alt="${company} logo" class="me-2" style="width: 24px; height: 24px; object-fit: cover; border-radius: 4px;">` : ''}
-                                <span>${company}</span>
+                                <a href="${companyUrl}" target="_blank" class="text-decoration-none" onclick="event.stopPropagation();">
+                                    <span>${company}</span>
+                                    ${companyUrl !== '#' ? `
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-box-arrow-up-right ms-1" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/>
+                                        <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/>
+                                    </svg>` : ''}
+                                </a>
                             </div>
                         </td>
                         <td>${location}</td>
@@ -399,9 +412,10 @@
             const requirements = job[fieldMapping.requirements] || '';
             const jobUrl = job.jobUrl || '';
             const logoUrl = job.logoUrl || '';
+            const companyUrl = job.companyUrl || '';
             
             console.log('Form field values:', {
-                title, company, location, type, status, description, requirements, jobUrl, logoUrl
+                title, company, location, type, status, description, requirements, jobUrl, logoUrl, companyUrl
             });
             
             document.getElementById('jobTitle').value = title;
@@ -413,6 +427,7 @@
             document.getElementById('requirements').value = requirements;
             document.getElementById('jobUrl').value = jobUrl;
             document.getElementById('logoUrl').value = logoUrl;
+            document.getElementById('companyUrl').value = companyUrl;
             
             console.log('Form populated successfully');
         }
@@ -428,6 +443,7 @@
             jobData[fieldMapping.requirements] = document.getElementById('requirements').value;
             jobData.jobUrl = document.getElementById('jobUrl').value;
             jobData.logoUrl = document.getElementById('logoUrl').value;
+            jobData.companyUrl = document.getElementById('companyUrl').value;
             
             if (!currentJobId) {
                 jobData.platform = "Manual";
