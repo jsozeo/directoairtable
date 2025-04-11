@@ -266,7 +266,7 @@
             }
             
             tableBody.innerHTML = posts.map(post => {
-                const postId = post.postId || post.id || post.SK || '';
+                const postId = post.objectId || post.postId || post.id || post.SK || '';
                 return `
                     <tr class="company-row" data-post-id="${postId}">
                         <td>${post.title || ''}</td>
@@ -346,6 +346,13 @@
             if (!currentPostId) {
                 postData.timestamp = new Date().toISOString();
                 postData.createDate = new Date().toISOString();
+                postData.platform = "Manual";
+                postData.object = "post";
+                
+                // Generate objectId from title
+                if (postData.title) {
+                    postData.objectId = postData.title.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+                }
             }
 
             try {

@@ -285,7 +285,7 @@
             }
             
             tableBody.innerHTML = jobs.map(job => {
-                const jobId = job.jobId || job.id || job.SK || '';
+                const jobId = job.objectId || job.jobId || job.id || job.SK || '';
                 const title = job[fieldMapping.title] || '';
                 const company = job[fieldMapping.company] || '';
                 const location = job[fieldMapping.location] || '';
@@ -403,6 +403,13 @@
                 jobData.object = "job";
                 jobData.timestamp = new Date().toISOString();
                 jobData.createDate = new Date().toISOString();
+                
+                // Generate objectId from job title and company
+                const jobTitle = document.getElementById('jobTitle').value;
+                const company = document.getElementById('company').value;
+                if (jobTitle && company) {
+                    jobData.objectId = `${jobTitle.toLowerCase()}-${company.toLowerCase()}`.replace(/[^a-z0-9-]/g, '');
+                }
             }
 
             try {
