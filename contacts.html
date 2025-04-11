@@ -139,6 +139,7 @@
                         <th>Title</th>
                         <th>Email</th>
                         <th>Phone</th>
+                        <th>Location</th>
                     </tr>
                 </thead>
                 <tbody id="contactsTable">
@@ -176,6 +177,10 @@
             <div class="mb-3">
                 <label class="form-label">Phone</label>
                 <input type="tel" class="form-control" id="phone">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Location</label>
+                <input type="text" class="form-control" id="location">
             </div>
             <div class="mb-3">
                 <label class="form-label">Notes</label>
@@ -256,12 +261,12 @@
             const tableBody = document.getElementById('contactsTable');
             
             if (!contacts || !Array.isArray(contacts) || contacts.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No contacts found</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No contacts found</td></tr>';
                 return;
             }
             
             tableBody.innerHTML = contacts.map(contact => {
-                const contactId = contact.contactId || contact.id || contact.SK || '';
+                const contactId = contact.objectId ;
                 return `
                     <tr class="contact-row" data-contact-id="${contactId}">
                         <td>${contact.firstName || ''} ${contact.lastName || ''}</td>
@@ -269,6 +274,7 @@
                         <td>${contact.jobTitle || ''}</td>
                         <td>${contact.email || ''}</td>
                         <td>${contact.phone || ''}</td>
+                        <td>${contact.location || ''}</td>
                     </tr>
                 `;
             }).join('');
@@ -324,10 +330,11 @@
         function populateContactForm(contact) {
             document.getElementById('firstName').value = contact.firstName || '';
             document.getElementById('lastName').value = contact.lastName || '';
-            document.getElementById('title').value = contact.title || '';
-            document.getElementById('company').value = contact.company || '';
+            document.getElementById('title').value = contact.jobTitle || contact.title || '';
+            document.getElementById('company').value = contact.companyName || contact.company || '';
             document.getElementById('email').value = contact.email || '';
             document.getElementById('phone').value = contact.phone || '';
+            document.getElementById('location').value = contact.location || '';
             document.getElementById('notes').value = contact.notes || '';
         }
 
@@ -339,12 +346,17 @@
                 company: document.getElementById('company').value,
                 email: document.getElementById('email').value,
                 phone: document.getElementById('phone').value,
+                location: document.getElementById('location').value,
                 notes: document.getElementById('notes').value
             };
 
             if (!currentContactId) {
                 contactData.timestamp = new Date().toISOString();
                 contactData.createDate = new Date().toISOString();
+                // Generate objectId from firstName and lastName if new contact
+                if (contactData.firstName && contactData.lastName) {
+                    contactData.objectId = `${contactData.firstName.toLowerCase()}-${contactData.lastName.toLowerCase()}`.replace(/[^a-z0-9-]/g, '');
+                }
             }
 
             try {
