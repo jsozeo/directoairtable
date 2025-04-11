@@ -136,7 +136,7 @@
                     <tr>
                         <th>Name</th>
                         <th>Company</th>
-                        <th>Title</th>
+                        <th>Job</th>
                         <th>Email</th>
                         <th>Phone</th>
                         <th>Location</th>
@@ -163,12 +163,20 @@
                 <input type="text" class="form-control" id="lastName" required>
             </div>
             <div class="mb-3">
-                <label class="form-label">Title</label>
-                <input type="text" class="form-control" id="title">
+                <label class="form-label">Profile URL</label>
+                <input type="url" class="form-control" id="profileUrl" placeholder="https://...">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Job</label>
+                <input type="text" class="form-control" id="job">
             </div>
             <div class="mb-3">
                 <label class="form-label">Company</label>
                 <input type="text" class="form-control" id="company">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Company URL</label>
+                <input type="url" class="form-control" id="companyUrl" placeholder="https://...">
             </div>
             <div class="mb-3">
                 <label class="form-label">Email</label>
@@ -266,12 +274,34 @@
             }
             
             tableBody.innerHTML = contacts.map(contact => {
-                const contactId = contact.objectId ;
+                const contactId = contact.objectId;
+                const profileUrl = contact.profileUrl || '#';
+                const companyUrl = contact.companyUrl || '#';
+                const fullName = `${contact.firstName || ''} ${contact.lastName || ''}`;
+                
                 return `
                     <tr class="contact-row" data-contact-id="${contactId}">
-                        <td>${contact.firstName || ''} ${contact.lastName || ''}</td>
-                        <td>${contact.companyName || ''}</td>
-                        <td>${contact.jobTitle || ''}</td>
+                        <td>
+                            <a href="${profileUrl}" target="_blank" class="text-decoration-none" onclick="event.stopPropagation();">
+                                ${fullName}
+                                ${profileUrl !== '#' ? `
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-box-arrow-up-right ms-1" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/>
+                                    <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/>
+                                </svg>` : ''}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="${companyUrl}" target="_blank" class="text-decoration-none" onclick="event.stopPropagation();">
+                                ${contact.companyName || ''}
+                                ${companyUrl !== '#' ? `
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-box-arrow-up-right ms-1" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/>
+                                    <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/>
+                                </svg>` : ''}
+                            </a>
+                        </td>
+                        <td>${contact.job || contact.jobTitle || ''}</td>
                         <td>${contact.email || ''}</td>
                         <td>${contact.phone || ''}</td>
                         <td>${contact.location || ''}</td>
@@ -330,8 +360,10 @@
         function populateContactForm(contact) {
             document.getElementById('firstName').value = contact.firstName || '';
             document.getElementById('lastName').value = contact.lastName || '';
-            document.getElementById('title').value = contact.jobTitle || contact.title || '';
+            document.getElementById('profileUrl').value = contact.profileUrl || '';
+            document.getElementById('job').value = contact.job || contact.jobTitle || '';
             document.getElementById('company').value = contact.companyName || contact.company || '';
+            document.getElementById('companyUrl').value = contact.companyUrl || '';
             document.getElementById('email').value = contact.email || '';
             document.getElementById('phone').value = contact.phone || '';
             document.getElementById('location').value = contact.location || '';
@@ -342,8 +374,10 @@
             const contactData = {
                 firstName: document.getElementById('firstName').value,
                 lastName: document.getElementById('lastName').value,
-                title: document.getElementById('title').value,
-                company: document.getElementById('company').value,
+                profileUrl: document.getElementById('profileUrl').value,
+                job: document.getElementById('job').value,
+                companyName: document.getElementById('company').value,
+                companyUrl: document.getElementById('companyUrl').value,
                 email: document.getElementById('email').value,
                 phone: document.getElementById('phone').value,
                 location: document.getElementById('location').value,
@@ -353,6 +387,8 @@
             if (!currentContactId) {
                 contactData.timestamp = new Date().toISOString();
                 contactData.createDate = new Date().toISOString();
+                contactData.object = "contact";
+                
                 // Generate objectId from firstName and lastName if new contact
                 if (contactData.firstName && contactData.lastName) {
                     contactData.objectId = `${contactData.firstName.toLowerCase()}-${contactData.lastName.toLowerCase()}`.replace(/[^a-z0-9-]/g, '');
