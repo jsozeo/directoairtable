@@ -163,6 +163,14 @@
                 <input type="text" class="form-control" id="company" required>
             </div>
             <div class="mb-3">
+                <label class="form-label">Job URL</label>
+                <input type="url" class="form-control" id="jobUrl" placeholder="https://...">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Company Logo URL</label>
+                <input type="url" class="form-control" id="logoUrl" placeholder="https://...">
+            </div>
+            <div class="mb-3">
                 <label class="form-label">Location</label>
                 <input type="text" class="form-control" id="location">
             </div>
@@ -243,11 +251,13 @@
         const fieldMapping = {
             title: 'jobTitle',            // Changed from 'Title' to 'jobTitle'
             company: 'companyName',       // Correct
-            location: 'jobLocation',      // Correct
-            type: 'jobType',              // Changed from 'workplaceType' to 'jobType'
+            location: 'location',         // Changed to use direct 'location' field
+            type: 'workplaceType',        // 'workplaceType' matches the schema
             status: 'jobState',           // Correct
             description: 'jobDescription', // Correct
-            requirements: 'jobFunctions'  // Correct
+            requirements: 'jobFunctions',  // Correct
+            jobUrl: 'jobUrl',             // Added
+            logoUrl: 'logoUrl'            // Added
         };
 
         async function loadJobs() {
@@ -288,14 +298,29 @@
                 const jobId = job.objectId || job.jobId || job.id || job.SK || '';
                 const title = job[fieldMapping.title] || '';
                 const company = job[fieldMapping.company] || '';
-                const location = job[fieldMapping.location] || '';
+                const location = job.location || '';
                 const type = job[fieldMapping.type] || '';
                 const status = job[fieldMapping.status] || '';
+                const jobUrl = job.jobUrl || '#';
+                const logoUrl = job.logoUrl || '';
                 
                 return `
                     <tr class="company-row" data-job-id="${jobId}">
-                        <td>${title}</td>
-                        <td>${company}</td>
+                        <td>
+                            <a href="${jobUrl}" target="_blank" class="text-decoration-none" onclick="event.stopPropagation();">
+                                ${title}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-box-arrow-up-right ms-1" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/>
+                                    <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/>
+                                </svg>
+                            </a>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                ${logoUrl ? `<img src="${logoUrl}" alt="${company} logo" class="me-2" style="width: 24px; height: 24px; object-fit: cover; border-radius: 4px;">` : ''}
+                                <span>${company}</span>
+                            </div>
+                        </td>
                         <td>${location}</td>
                         <td>${type}</td>
                         <td>${status}</td>
@@ -367,14 +392,16 @@
             // Extract job fields with fallbacks
             const title = job[fieldMapping.title] || '';
             const company = job[fieldMapping.company] || '';
-            const location = job[fieldMapping.location] || '';
+            const location = job.location || ''; // Direct access to location
             const type = job[fieldMapping.type] || '';
             const status = job[fieldMapping.status] || '';
             const description = job[fieldMapping.description] || '';
             const requirements = job[fieldMapping.requirements] || '';
+            const jobUrl = job.jobUrl || '';
+            const logoUrl = job.logoUrl || '';
             
             console.log('Form field values:', {
-                title, company, location, type, status, description, requirements
+                title, company, location, type, status, description, requirements, jobUrl, logoUrl
             });
             
             document.getElementById('jobTitle').value = title;
@@ -384,6 +411,8 @@
             document.getElementById('status').value = status;
             document.getElementById('description').value = description;
             document.getElementById('requirements').value = requirements;
+            document.getElementById('jobUrl').value = jobUrl;
+            document.getElementById('logoUrl').value = logoUrl;
             
             console.log('Form populated successfully');
         }
@@ -392,11 +421,13 @@
             const jobData = {};
             jobData[fieldMapping.title] = document.getElementById('jobTitle').value;
             jobData[fieldMapping.company] = document.getElementById('company').value;
-            jobData[fieldMapping.location] = document.getElementById('location').value;
+            jobData.location = document.getElementById('location').value; // Direct assignment
             jobData[fieldMapping.type] = document.getElementById('jobType').value;
             jobData[fieldMapping.status] = document.getElementById('status').value;
             jobData[fieldMapping.description] = document.getElementById('description').value;
             jobData[fieldMapping.requirements] = document.getElementById('requirements').value;
+            jobData.jobUrl = document.getElementById('jobUrl').value;
+            jobData.logoUrl = document.getElementById('logoUrl').value;
             
             if (!currentJobId) {
                 jobData.platform = "Manual";
