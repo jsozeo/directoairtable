@@ -408,7 +408,7 @@
                             object: "All",
                             title: "Get a list of records",
                             method: "GET",
-                            url: "https://api.precrm.fr/dynamodb/<object>",
+                            url: "https://3sit86nm7e.execute-api.eu-west-3.amazonaws.com/prod/dynamodb/<object>",
                             bodyType: "none"
                         },
                         {
@@ -417,7 +417,7 @@
                             object: "All",
                             title: "Get a single record",
                             method: "GET",
-                            url: "https://api.precrm.fr/dynamodb/<object>/<id>",
+                            url: "https://3sit86nm7e.execute-api.eu-west-3.amazonaws.com/prod/dynamodb/<object>/<id>",
                             bodyType: "none"
                         },
                         {
@@ -426,7 +426,7 @@
                             object: "All",
                             title: "Update a record",
                             method: "PUT",
-                            url: "https://api.precrm.fr/dynamodb/<object>/<id>",
+                            url: "https://3sit86nm7e.execute-api.eu-west-3.amazonaws.com/prod/dynamodb/<object>/<id>",
                             bodyType: "json",
                             bodyTemplate: '{\n    "<updated key>": "<updated value>"\n}'
                         },
@@ -436,7 +436,7 @@
                             object: "All",
                             title: "Delete a record",
                             method: "DELETE",
-                            url: "https://api.precrm.fr/dynamodb/<object>/<id>",
+                            url: "https://3sit86nm7e.execute-api.eu-west-3.amazonaws.com/prod/dynamodb/<object>/<id>",
                             bodyType: "none"
                         },
                         {
@@ -445,7 +445,7 @@
                             object: "All",
                             title: "Create a record",
                             method: "POST",
-                            url: "https://api.precrm.fr/dynamodb/<object>",
+                            url: "https://3sit86nm7e.execute-api.eu-west-3.amazonaws.com/prod/dynamodb/<object>",
                             bodyType: "json",
                             bodyTemplate: '{\n    "<key1>":"<value1>"\n}'
                         }
@@ -659,7 +659,7 @@
                         bodyFields += `    "${field.name}": ${fieldValue}${index < requiredFields.length - 1 ? ',\n' : ''}`;
                     });
                     
-                    const curlCmd = `curl --location 'https://api.precrm.fr/action/${tool.slug}' \\
+                    const curlCmd = `curl --location 'https://3sit86nm7e.execute-api.eu-west-3.amazonaws.com/prod/action/${tool.slug}' \\
 --header 'x-api-key: ${this.userApiKey}' \\
 --header 'Content-Type: application/json' \\
 --data '{
@@ -789,7 +789,7 @@ ${bodyFields}
                         {
                           "parameters": {
                             "method": "POST",
-                            "url": `https://api.precrm.fr/action/${tool.slug}`,
+                            "url": `https://3sit86nm7e.execute-api.eu-west-3.amazonaws.com/prod/action/${tool.slug}`,
                             "sendHeaders": true,
                             "headerParameters": {
                               "parameters": [
@@ -871,7 +871,7 @@ ${bodyFields}
                     }
                     
                     // Use the original function for non-dynamodb tools
-                    return `curl --location 'https://api.precrm.fr/action/${tool.slug}' \\
+                    return `curl --location 'https://3sit86nm7e.execute-api.eu-west-3.amazonaws.com/prod/action/${tool.slug}' \\
 --header 'x-api-key: ${this.userApiKey}' \\
 --header 'Content-Type: application/json' \\
 --data '{
